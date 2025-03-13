@@ -8,9 +8,7 @@ cmake_minimum_required (VERSION 3.25)
 # You can add more external include paths of other projects that are needed for your project.
 add_library (HIBF-hashing_lib STATIC fastq_conversion.cpp)
 target_include_directories (HIBF-hashing_lib PUBLIC "${HIBF-hashing_SOURCE_DIR}/include")
-target_link_libraries (HIBF-hashing_lib PUBLIC seqan3::seqan3 sharg::sharg seqan::hibf
-                                                    fmindex-collection::fmindex-collection
-)
+target_link_libraries (HIBF-hashing_lib PUBLIC seqan3::seqan3 sharg::sharg seqan::hibf)
 
 target_compile_options (HIBF-hashing_lib PUBLIC "-pedantic" "-Wall" "-Wextra")
 
