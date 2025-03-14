@@ -4,37 +4,20 @@
 
 #include <sharg/all.hpp>
 
-#include "fastq_conversion.hpp"
+#include "build/run_build.hpp"
 
 int main(int argc, char ** argv)
 {
-    // Configuration
-    configuration config{};
-
     // Parser
-    sharg::parser parser{"Fastq-to-Fasta-Converter", argc, argv};
+    sharg::parser parser{"HIBF-hashing",
+                         argc,
+                         argv,
+                         sharg::update_notifications{sharg::update_notifications::off},
+                         {"build", "search"}};
 
     // General information.
-    parser.info.author = "SeqAn-Team";
+    parser.info.author = "Mariya";
     parser.info.version = "1.0.0";
-
-    // Positional option: The FASTQ file to convert.
-    parser.add_positional_option(config.fastq_input,
-                                 sharg::config{.description = "The FASTQ file to convert.",
-                                               .validator = sharg::input_file_validator{{"fq", "fastq"}}});
-
-    // Open: Output FASTA file. Default: print to terminal - handled in fastq_conversion.cpp.
-    parser.add_option(config.fasta_output,
-                      sharg::config{.short_id = 'o',
-                                    .long_id = "output",
-                                    .description = "The output FASTA file.",
-                                    .default_message = "Print to terminal (stdout)",
-                                    .validator = sharg::output_file_validator{}});
-
-    // Flag: Verose output.
-    parser.add_flag(
-        config.verbose,
-        sharg::config{.short_id = 'v', .long_id = "verbose", .description = "Give more detailed information."});
 
     try
     {
@@ -46,10 +29,13 @@ int main(int argc, char ** argv)
         return -1;
     }
 
-    convert_fastq(config); // Call fastq to fasta converter.
+    // hold a reference to the sub_parser
+    sharg::parser & sub_parser = parser.get_sub_parser();
 
-    if (config.verbose) // If flag is set.
-        std::cerr << "Conversion was a success. Congrats!\n";
+    if (sub_parser.info.app_name == std::string_view{"HIBF-hashing-build"})
+        run_build(sub_parser);
+    else if (sub_parser.info.app_name == std::string_view{"HIBF-hashing-search"})
+        return 0; // return run_search(sub_parser);
 
     return 0;
 }

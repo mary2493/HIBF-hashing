@@ -4,11 +4,6 @@
 
 #pragma once
 
-#include <filesystem>
+#include "configuration.hpp"
 
-struct configuration
-{
-    std::filesystem::path file_list_path{};
-    std::filesystem::path index_output{"index"};
-    size_t kmer_size{20u};
-};
+void build(configuration const & config);
