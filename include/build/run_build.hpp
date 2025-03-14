@@ -4,11 +4,6 @@
 
 #pragma once
 
-#include <filesystem>
+#include <sharg/all.hpp>
 
-struct configuration
-{
-    std::filesystem::path file_list_path{};
-    std::filesystem::path index_output{"index"};
-    size_t kmer_size{20u};
-};
+void run_build(sharg::parser & parser);
