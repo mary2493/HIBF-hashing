@@ -1,6 +1,7 @@
 #include "build/build.hpp"
-
+#include <seqan3/io/sequence_file/all.hpp> 
 #include <iostream>
+#include <filesystem>
 
 void build(configuration const & config)
 {
