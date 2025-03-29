@@ -18,9 +18,10 @@ TEST_F(api_build_test, default_config)
     build(config);
     std::string const std_cout = testing::internal::GetCapturedStdout();
 
-    std::string const expected{"\"\"\n"
+    /*std::string const expected{"\"\"\n"
                                "\"index\"\n"
-                               "20\n"};
+                               "20\n"}; */
+    std::string const expected{"\"\"\n\"index\"\n\x14\nHIBF index built and saved to \"index\"\n"};
 
     EXPECT_EQ(expected, std_cout);
 }
