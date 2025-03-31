@@ -14,10 +14,6 @@
 
 void build(configuration const & config)
 {
-    std::cout << config.file_list_path << '\n';
-    std::cout << config.index_output << '\n';
-    std::cout << config.kmer_size << '\n';
-
     std::ifstream file_list(config.file_list_path);
     std::string current_line;
 
@@ -49,21 +45,11 @@ void build(configuration const & config)
             //kmers of each file are assigned to a user bin
             for (auto & record : current_fasta_file)
             {   
-                /* Checking whether the path leads to a valid FASTA file
-                std::filesystem::path fasta_path{current_line};
-                std::string ext = fasta_path.extension().string();
-                if (ext != ".fasta" && ext != ".fa" && ext != ".fna")
-                {
-                    std::cerr << "Error: Invalid file extension '" << ext 
-                    << "' in file list. Expected .fasta, .fa, or .fna.\n";
-                    continue;
-                } */
-
                 //Checking if the sequence is shorter than the k-mer size
                 if (record.sequence().size() < config.kmer_size) 
                 {
                     std::cerr << "Error: Sequence in file " << current_line 
-                    << " is shorter than the k-mer size (" << config.kmer_size << "). Skipping sequence.\n";
+                    << " is shorter than the k-mer size. Skipping sequence.\n";
                     continue;
                 }
                 
@@ -122,7 +108,6 @@ void build(configuration const & config)
         std::ofstream os{config.index_output, std::ios::binary};
         cereal::BinaryOutputArchive oarchive{os};
         oarchive(hibf);
-        
     }
     std::cout << "HIBF index built and saved to " << config.index_output << '\n';
     if (count_files == 0)
