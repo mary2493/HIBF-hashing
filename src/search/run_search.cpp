@@ -4,32 +4,38 @@
 
 #include "search/run_search.hpp"
 
-#include "search/search.hpp"
 #include "configuration.hpp"
+#include "search/search.hpp"
 
 void run_search(sharg::parser & parser)
 {
     configuration config{};
 
-    parser.add_option(config.file_list_path,
+    parser.add_option(config.index_file,
                       sharg::config{.short_id = 'i',
-                                    .long_id = "input",
-                                    .description = "A file containing one sequence file per line",
+                                    .long_id = "index",
+                                    .description = "HIBF index file to load.",
                                     .required = true,
                                     .validator = sharg::input_file_validator{}});
 
+    parser.add_option(config.reads,
+                      sharg::config{.short_id = 'r',
+                                    .long_id = "reads",
+                                    .description = "reads to search for.",
+                                    .required = true,
+                                    .validator = sharg::input_file_validator{}});
     parser.add_option(
-        config.index_output,
+        config.search_output,
         sharg::config{.short_id = 'o',
                       .long_id = "output",
-                      .description = "Where to store the index.",
+                      .description = ".txt file to write the search results to.",
                       .validator = sharg::output_file_validator{sharg::output_file_open_options::create_new}});
 
-    parser.add_option(config.kmer_size,
+    /*parser.add_option(config.kmer_size,
                       sharg::config{.short_id = 'k',
                                     .long_id = "kmer",
                                     .description = "The k-mer size to use.",
-                                    .validator = sharg::arithmetic_range_validator{1, 32}});
+                                    .validator = sharg::arithmetic_range_validator{1, 32}});*/
 
     try
     {
