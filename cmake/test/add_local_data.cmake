@@ -14,10 +14,12 @@ list (FILTER datasources EXCLUDE REGEX "\.license")
 
 foreach (datasource IN LISTS datasources)
     get_filename_component (datasource_name "${datasource}" NAME)
-    file (SHA256 ${DATASOURCES_DATA_DIR}/${datasource} datasource_hash)
+    set (data_dir "${CMAKE_CURRENT_BINARY_DIR}/data")
+    file (MAKE_DIRECTORY "${data_dir}")
 
-    declare_datasource (FILE ${datasource_name}
-                        URL ${DATASOURCES_DATA_DIR}/${datasource}
-                        URL_HASH SHA256=${datasource_hash}
-    )
+    if (datasource_name MATCHES ".*\.txt$")
+        configure_file ("${DATASOURCES_DATA_DIR}/${datasource}" "${data_dir}/${datasource_name}")
+    else ()
+        configure_file ("${DATASOURCES_DATA_DIR}/${datasource}" "${data_dir}/${datasource_name}" COPYONLY)
+    endif ()
 endforeach ()
