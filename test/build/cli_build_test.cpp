@@ -37,19 +37,17 @@ TEST_F(cli_build_test, with_arguments)
 
     std::string const expected{
     "HIBF index built and saved to \"new.index\"\n"
-    "Successfully processed 2 files.\n"};    
+    "Successfully processed 2 files.\n"};
 
     EXPECT_SUCCESS(result);
     EXPECT_EQ(result.out, expected);
 
-    EXPECT_EQ(result.err, 
-        "Error: Could not parse file " + (std::filesystem::path{"/home/mary/develop/HIBF-hashing/test/data/file_test1.fasta"}).string() + ".\n"
-        "Error: Sequence in file " + (std::filesystem::path{"/home/mary/develop/HIBF-hashing/test/data/file_test2.fasta"}).string() + 
-        " is shorter than the k-mer size. Skipping sequence.\n"
+    EXPECT_EQ(result.err,
+        "Error: Could not parse file " + data("file_test1.fasta").string() + ".\n"
+        "Error: Sequence in file " + data("file_test2.fasta").string() + " is shorter than the k-mer size. Skipping sequence.\n"
         "Error: Empty line or invalid entry in the file list.\n"
-        "Error: Unsupported file format for file " + (std::filesystem::path{"/home/mary/develop/HIBF-hashing/test/data/file_test4.txt"}).string() + ".\n"
+        "Error: Unsupported file format for file " + data("file_test4.txt").string() + ".\n"
     );
-    
 }
 
 TEST_F(cli_build_test, missing_path)
