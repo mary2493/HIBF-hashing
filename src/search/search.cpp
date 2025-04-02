@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-void search(configuration const & config)
+void search(configuration const &)
 {
    
 }
