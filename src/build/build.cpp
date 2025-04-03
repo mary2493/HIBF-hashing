@@ -1,16 +1,18 @@
 #include "build/build.hpp"
-#include <seqan3/io/sequence_file/all.hpp> 
-#include <seqan3/search/views/kmer_hash.hpp>
-#include <hibf/config.hpp>                               
-#include <hibf/hierarchical_interleaved_bloom_filter.hpp>
-#include <cereal/archives/binary.hpp>
-#include <iostream>
-#include <fstream>
-#include <filesystem>
-#include <vector>
+
 #include <algorithm> // for std::all_of
 #include <cctype>    // for isspace
+#include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <vector>
 
+#include <seqan3/io/sequence_file/all.hpp>
+#include <seqan3/search/views/kmer_hash.hpp>
+
+#include <cereal/archives/binary.hpp>
+#include <hibf/config.hpp>
+#include <hibf/hierarchical_interleaved_bloom_filter.hpp>
 
 void build(configuration const & config)
 {
@@ -19,42 +21,44 @@ void build(configuration const & config)
 
     //all_bins_together: used to store each FASTA file as a separate bin
     std::vector<std::vector<uint64_t>> all_bins_together;
-    
-   
+
     //Counting the number of files in the file list
     unsigned int count_files = 0;
 
     //Each FASTA file is opened, and the k-mers are extracted from it.
     //These kmers are stored in all_bins_together, with each file corresponding to a "User Bin" in the HIBF
-    while (std::getline(file_list, current_line)){
-        
+    while (std::getline(file_list, current_line))
+    {
+
         /* Checking whether the line is empty or consists only of whitespace
         .empty() checks if the string is empty, and std::all_of checks if all characters in the string are whitespace. It returns true
         if every character is a whitespace (e.g., space, tab, newline) and false if at least one character is not a whitespace */
         if (current_line.empty() || std::all_of(current_line.begin(), current_line.end(), isspace))
         {
-        std::cerr << "Error: Empty line or invalid entry in the file list.\n";
-        continue;
+            std::cerr << "Error: Empty line or invalid entry in the file list.\n";
+            continue;
         }
-        
+
         try
         {
-            seqan3::sequence_file_input<seqan3::sequence_file_input_default_traits_dna> current_fasta_file{current_line};
+            seqan3::sequence_file_input<seqan3::sequence_file_input_default_traits_dna> current_fasta_file{
+                current_line};
             std::vector<uint64_t> bin_for_kmers;
 
             //kmers of each file are assigned to a user bin
             for (auto & record : current_fasta_file)
-            {   
+            {
                 //Checking if the sequence is shorter than the k-mer size
-                if (record.sequence().size() < config.kmer_size) 
+                if (record.sequence().size() < config.kmer_size)
                 {
-                    std::cerr << "Error: Sequence in file " << current_line 
-                    << " is shorter than the k-mer size. Skipping sequence.\n";
+                    std::cerr << "Error: Sequence in file " << current_line
+                              << " is shorter than the k-mer size. Skipping sequence.\n";
                     continue;
                 }
-                
+
                 //Extracting kmers from the sequence and storing them in bin_for_kmers
-                auto kmers = record.sequence() | seqan3::views::kmer_hash(seqan3::shape{seqan3::ungapped{config.kmer_size}});
+                auto kmers =
+                    record.sequence() | seqan3::views::kmer_hash(seqan3::shape{seqan3::ungapped{config.kmer_size}});
                 bin_for_kmers.insert(bin_for_kmers.end(), kmers.begin(), kmers.end());
             }
             all_bins_together.push_back(std::move(bin_for_kmers));
@@ -82,7 +86,8 @@ void build(configuration const & config)
         }
         catch (std::exception const & e)
         {
-            std::cerr << "Error: An unexpected error occurred while processing file " << current_line << ": " << e.what() << "\n";
+            std::cerr << "Error: An unexpected error occurred while processing file " << current_line << ": "
+                      << e.what() << "\n";
             continue;
         }
 
@@ -95,11 +100,11 @@ void build(configuration const & config)
         };
 
         // construct a config
-        seqan::hibf::config hibf_config{.input_fn = get_user_bin_data, // required
-            .number_of_user_bins = all_bins_together.size(),     // required
-            .number_of_hash_functions = 2u,
-            .maximum_fpr = 0.05,
-            .threads = 1u};
+        seqan::hibf::config hibf_config{.input_fn = get_user_bin_data,                   // required
+                                        .number_of_user_bins = all_bins_together.size(), // required
+                                        .number_of_hash_functions = 2u,
+                                        .maximum_fpr = 0.05,
+                                        .threads = 1u};
 
         // The HIBF constructor will determine a hierarchical layout for the user bins and build the filter
         seqan::hibf::hierarchical_interleaved_bloom_filter hibf{hibf_config};
@@ -118,5 +123,4 @@ void build(configuration const & config)
     {
         std::cout << "Successfully processed " << count_files << " files.\n";
     }
-    
 }
