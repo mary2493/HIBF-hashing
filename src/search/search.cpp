@@ -11,8 +11,8 @@
 #include <seqan3/search/views/minimiser_hash.hpp>
 
 #include <cereal/archives/binary.hpp>
+#include <hibf/config.hpp>
 #include <hibf/hierarchical_interleaved_bloom_filter.hpp>
-#include <hibf/config.hpp>  
 using namespace seqan3::literals;
 
 void search(configuration const &)
@@ -56,8 +56,9 @@ void search(configuration const &)
 
     for (auto & record : reads_file)
     {
-        auto window_size = config.kmer_size;
-        auto kmer_view = record.sequence() | seqan3::views::minimiser_hash(seqan3::shape{seqan3::ungapped{config.kmer_size}}, seqan3::window_size{window_size});
+        // auto window_size = config.kmer_size;
+        auto kmer_view =
+            record.sequence() | seqan3::views::kmer_hash(seqan3::shape{seqan3::ungapped{config.kmer_size}});
         auto & result = agent.membership_for(kmer_view, threshold);
         seqan3::debug_stream << record.id() << ": " << result << '\n';
     }
