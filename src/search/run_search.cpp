@@ -24,18 +24,19 @@ void run_search(sharg::parser & parser)
                                     .description = "reads to search for.",
                                     .required = true,
                                     .validator = sharg::input_file_validator{}});
+
+    parser.add_option(config.threshold,
+                      sharg::config{.short_id = 'e',
+                                    .long_id = "error",
+                                    .description = "Maximum allowed error (threshold for mismatches).",
+                                    .required = false,
+                                    .validator = sharg::arithmetic_range_validator{1, 16}});
     parser.add_option(
         config.search_output,
         sharg::config{.short_id = 'o',
                       .long_id = "output",
                       .description = ".txt file to write the search results to.",
                       .validator = sharg::output_file_validator{sharg::output_file_open_options::create_new}});
-
-    /*parser.add_option(config.kmer_size,
-                      sharg::config{.short_id = 'k',
-                                    .long_id = "kmer",
-                                    .description = "The k-mer size to use.",
-                                    .validator = sharg::arithmetic_range_validator{1, 32}});*/
 
     try
     {

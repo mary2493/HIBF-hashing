@@ -34,32 +34,29 @@ void search(configuration const & config)
     seqan3::sequence_file_input<seqan3::sequence_file_input_default_traits_dna> reads_file{config.reads};
     std::vector<std::string> matched_reads;
 
-    seqan3::debug_stream << "=====   Running on a single text   =====\n"
-                         << "The following hits were found:\n";
+    seqan3::debug_stream << "The following hits were found:\n";
 
     auto agent = hibf.membership_agent();
-    size_t const threshold = 1u;
+    size_t threshold = config.threshold;
 
-    /*  auto & result1 = agent.membership_for(query1, 2u);
-
-    // query1 hits in user_bin_1 and user_bin_3, which have the IDs 0 and 2, respectively.
-    for (uint64_t hit_user_bin : result1)
-        std::cout << hit_user_bin << ' '; // The results are not sorted: 2 0
-    std::cout << '\n';
-    
-    for (auto & record : reads_fin)
-{
-    auto & result = agent.membership_for(record.sequence() | minimiser_view, threshold);
-    seqan3::debug_stream << read.id() << ": " << result << '\n';
-}
-    */
-
+    std::ofstream result_out{config.search_output};
     for (auto & record : reads_file)
     {
-        // auto window_size = config.kmer_size;
         auto kmer_view =
             record.sequence() | seqan3::views::kmer_hash(seqan3::shape{seqan3::ungapped{config.kmer_size}});
         auto & result = agent.membership_for(kmer_view, threshold);
+        
+        //output console
         seqan3::debug_stream << record.id() << ": " << result << '\n';
+        
+        //save to file
+        result_out << record.id() << ": ";
+        for (size_t i = 0; i < result.size(); ++i)
+        {
+            result_out << result[i];
+            if (i < result.size() - 1)
+                result_out << ", ";
+        }
+        result_out << '\n';
     }
 }
