@@ -34,12 +34,11 @@ void search(configuration const & config)
     seqan3::sequence_file_input<seqan3::sequence_file_input_default_traits_dna> reads_file{config.reads};
     std::vector<std::string> matched_reads;
 
-    seqan3::debug_stream << "The following hits were found:\n";
-
     auto agent = hibf.membership_agent();
     size_t threshold = config.threshold;
 
     std::ofstream result_out{config.search_output};
+    std::cout << "The following hits were found:\n";
     for (auto & record : reads_file)
     {
         auto kmer_view =
@@ -47,7 +46,15 @@ void search(configuration const & config)
         auto & result = agent.membership_for(kmer_view, threshold);
         
         //output console
-        seqan3::debug_stream << record.id() << ": " << result << '\n';
+        std::cout << record.id() << ": [";
+        for (size_t i = 0; i < result.size(); ++i)
+        {
+            std::cout << result[i];
+            if (i < result.size() - 1)
+                std::cout << ",";
+        }
+        std::cout << "]\n";
+        
         
         //save to file
         result_out << record.id() << ": ";
