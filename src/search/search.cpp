@@ -15,7 +15,7 @@
 #include <hibf/hierarchical_interleaved_bloom_filter.hpp>
 using namespace seqan3::literals;
 
-void search(configuration const &)
+void search(configuration const & config)
 {
 
     seqan::hibf::hierarchical_interleaved_bloom_filter hibf;

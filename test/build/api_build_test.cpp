@@ -14,7 +14,7 @@ struct api_build_test : public app_test
 TEST_F(api_build_test, default_config)
 {
     configuration config{};
-    config.file_list_path = data("file_list.txt");
+    config.file_list_path = data("file_list_for_tests.txt");
     config.index_output = "new.index";
     config.kmer_size = 20;
     testing::internal::CaptureStdout();
