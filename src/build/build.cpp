@@ -18,7 +18,7 @@
 
 void build(configuration const & config)
 {
-    using sequence_file_t = seqan3::sequence_file_input<seqan3::sequence_file_input_default_traits_dna>;
+        using sequence_file_t = seqan3::sequence_file_input<seqan3::sequence_file_input_default_traits_dna>;
 
     std::ifstream file_list(config.file_list_path);
     std::string current_line;
@@ -53,7 +53,7 @@ void build(configuration const & config)
         throw std::runtime_error{"No valid files found in the file list."};
 
     auto get_user_bin_data = [&](size_t const user_bin_id, seqan::hibf::insert_iterator it)
-    {
+    {   
         sequence_file_t fin{user_bin_paths[user_bin_id]};
         for (auto & record : fin)
         {
