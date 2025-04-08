@@ -30,32 +30,42 @@ void search(configuration const & config)
     auto agent = hibf.membership_agent();
     size_t threshold = config.threshold;
 
-    std::ofstream result_out{config.search_output};
-    std::cout << "The following hits were found:\n";
+    std::vector<std::string> result_for_cout;
+    std::vector<std::string> result_for_txt;
+
     for (auto & record : reads_file)
     {
+        if (record.sequence().size() < config.kmer_size)
+        {
+            throw std::runtime_error{"read in file is shorter than the k-mer size."};
+        }
+
         auto kmer_view =
             record.sequence() | seqan3::views::kmer_hash(seqan3::shape{seqan3::ungapped{config.kmer_size}});
         auto & result = agent.membership_for(kmer_view, threshold);
 
-        //output console
-        std::cout << record.id() << ": [";
-        for (size_t i = 0; i < result.size(); ++i)
-        {
-            std::cout << result[i];
-            if (i < result.size() - 1)
-                std::cout << ",";
-        }
-        std::cout << "]\n";
+        std::string current_read = record.id() + ": [";
 
-        //save to file
-        result_out << record.id() << ": ";
         for (size_t i = 0; i < result.size(); ++i)
         {
-            result_out << result[i];
+            current_read += std::to_string(result[i]);
             if (i < result.size() - 1)
-                result_out << ", ";
+                current_read += ",";
         }
-        result_out << '\n';
+        current_read += "]\n";
+        result_for_cout.push_back(current_read);
+        result_for_txt.push_back(record.id() + ": " + current_read);
+    }
+    std::cout << "The following hits were found:\n";
+    for (auto & record : result_for_cout)
+    {
+        std::cout << record;
+    }
+
+    //save to file
+    std::ofstream result_out{config.search_output};
+    for (auto & record : result_for_txt)
+    {
+        result_out << record;
     }
 }

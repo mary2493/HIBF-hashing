@@ -47,8 +47,7 @@ void build(configuration const & config)
             //Checking if the sequence is shorter than the k-mer size
             if (record.sequence().size() < config.kmer_size)
             {
-                throw std::runtime_error{"Sequence in file " + current_line
-                                         + " is shorter than the k-mer size."};
+                throw std::runtime_error{"Sequence in file " + current_line + " is shorter than the k-mer size."};
             }
 
             //Extracting kmers from the sequence and storing them in bin_for_kmers
@@ -58,30 +57,29 @@ void build(configuration const & config)
         }
         all_bins_together.push_back(std::move(bin_for_kmers));
         count_files++;
-
-        //The code below for building the HIBF index was copied from the https://github.com/seqan/hibf/tree/main website and adapted to the task
-        //Iteration over all k-mers in the corresponding all_bins_together[user_bin_id] and insertion of these k-mers into it
-        auto get_user_bin_data = [&](size_t const user_bin_id, seqan::hibf::insert_iterator it)
-        {
-            for (auto value : all_bins_together[user_bin_id])
-                it = value;
-        };
-
-        // construct a config
-        seqan::hibf::config hibf_config{.input_fn = get_user_bin_data,                   // required
-                                        .number_of_user_bins = all_bins_together.size(), // required
-                                        .number_of_hash_functions = 2u,
-                                        .maximum_fpr = 0.05,
-                                        .threads = 1u};
-
-        // The HIBF constructor will determine a hierarchical layout for the user bins and build the filter
-        seqan::hibf::hierarchical_interleaved_bloom_filter hibf{hibf_config};
-
-        //The indices can also be stored and loaded from disk by using cereal
-        std::ofstream os{config.index_output, std::ios::binary};
-        cereal::BinaryOutputArchive oarchive{os};
-        oarchive(hibf);
     }
+    //The code below for building the HIBF index was copied from the https://github.com/seqan/hibf/tree/main website and adapted to the task
+    //Iteration over all k-mers in the corresponding all_bins_together[user_bin_id] and insertion of these k-mers into it
+    auto get_user_bin_data = [&](size_t const user_bin_id, seqan::hibf::insert_iterator it)
+    {
+        for (auto value : all_bins_together[user_bin_id])
+            it = value;
+    };
+
+    // construct a config
+    seqan::hibf::config hibf_config{.input_fn = get_user_bin_data,                   // required
+                                    .number_of_user_bins = all_bins_together.size(), // required
+                                    .number_of_hash_functions = 2u,
+                                    .maximum_fpr = 0.05,
+                                    .threads = 1u};
+
+    // The HIBF constructor will determine a hierarchical layout for the user bins and build the filter
+    seqan::hibf::hierarchical_interleaved_bloom_filter hibf{hibf_config};
+
+    //The indices can also be stored and loaded from disk by using cereal
+    std::ofstream os{config.index_output, std::ios::binary};
+    cereal::BinaryOutputArchive oarchive{os};
+    oarchive(hibf);
 
     if (count_files == 0)
     {

@@ -1,5 +1,3 @@
 /home/mary/develop/HIBF-hashing/test/data/file_test1.fasta
 /home/mary/develop/HIBF-hashing/test/data/file_test2.fasta
-
-/home/mary/develop/HIBF-hashing/test/data/file_test4.txt
 /home/mary/develop/HIBF-hashing/test/data/file_test3.fasta
