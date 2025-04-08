@@ -35,7 +35,7 @@ TEST_F(cli_build_test, with_arguments)
     app_test_result const result = execute_app("HIBF-hashing",
                                                "build",
                                                "--input",
-                                               data("file_list_for_tests.txt"),
+                                               data("file_list.txt"),
                                                "--output new.index",
                                                "--kmer 20");
 

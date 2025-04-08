@@ -4,7 +4,10 @@
 #include <cctype>    // for isspace
 #include <fstream>
 #include <iostream>
+#include <string>
 #include <vector>
+
+#include <sharg/validators.hpp>
 
 #include <seqan3/io/sequence_file/all.hpp>
 #include <seqan3/search/views/minimiser_hash.hpp>
@@ -15,14 +18,14 @@
 
 void build(configuration const & config)
 {
+    using sequence_file_t = seqan3::sequence_file_input<seqan3::sequence_file_input_default_traits_dna>;
+
     std::ifstream file_list(config.file_list_path);
     std::string current_line;
 
-    //all_bins_together: used to store each FASTA file as a separate bin
-    std::vector<std::vector<uint64_t>> all_bins_together;
+    std::vector<std::string> user_bin_paths;
 
-    //Counting the number of files in the file list
-    unsigned int count_files = 0;
+    sharg::input_file_validator fasta_validator{{"fasta", "fa", "fna"}};
 
     //Each FASTA file is opened, and the k-mers are extracted from it.
     //These kmers are stored in all_bins_together, with each file corresponding to a "User Bin" in the HIBF
@@ -32,45 +35,41 @@ void build(configuration const & config)
         /* Checking whether the line is empty or consists only of whitespace
         .empty() checks if the string is empty, and std::all_of checks if all characters in the string are whitespace. It returns true
         if every character is a whitespace (e.g., space, tab, newline) and false if at least one character is not a whitespace */
-        if (current_line.empty() || std::all_of(current_line.begin(), current_line.end(), isspace))
+        if (current_line.empty()
+            || std::ranges::all_of(current_line,
+                                   [](unsigned char c)
+                                   {
+                                       return std::isspace(c);
+                                   }))
         {
             throw std::runtime_error{"Empty line or invalid entry in the file list."};
         }
 
-        seqan3::sequence_file_input<seqan3::sequence_file_input_default_traits_dna> current_fasta_file{current_line};
-        std::vector<uint64_t> bin_for_kmers;
-        std::vector<uint64_t> bin_for_hashes;
-
-        //kmers of each file are assigned to a user bin
-        for (auto & record : current_fasta_file)
-        {
-            //Checking if the sequence is shorter than the k-mer size
-            if (record.sequence().size() < config.kmer_size)
-            {
-                throw std::runtime_error{"Sequence in file " + current_line + " is shorter than the k-mer size."};
-            }
-
-            //Extracting kmers from the sequence and storing them in bin_for_kmers
-            auto kmers = record.sequence()
-                       | seqan3::views::minimiser_hash(seqan3::ungapped{config.kmer_size},
-                                                       seqan3::window_size{config.kmer_size});
-            for (uint64_t hash : kmers)
-                bin_for_hashes.push_back(hash);
-        }
-        all_bins_together.push_back(std::move(bin_for_hashes));
-        count_files++;
+        fasta_validator(current_line);
+        user_bin_paths.push_back(current_line);
     }
-    //The code below for building the HIBF index was copied from the https://github.com/seqan/hibf/tree/main website and adapted to the task
-    //Iteration over all k-mers in the corresponding all_bins_together[user_bin_id] and insertion of these k-mers into it
+
+    if (user_bin_paths.empty())
+        throw std::runtime_error{"No valid files found in the file list."};
+
     auto get_user_bin_data = [&](size_t const user_bin_id, seqan::hibf::insert_iterator it)
     {
-        for (auto value : all_bins_together[user_bin_id])
-            it = value;
-    };
+        sequence_file_t fin{user_bin_paths[user_bin_id]};
+        for (auto & record : fin)
+        {
+            if (record.sequence().size() < config.kmer_size)
+                throw std::runtime_error{"Sequence in " + user_bin_paths[user_bin_id]
+                                         + " is shorter than the k-mer size."};
 
+            std::ranges::copy(record.sequence()
+                                  | seqan3::views::minimiser_hash(seqan3::ungapped{config.kmer_size},
+                                                                  seqan3::window_size{config.kmer_size}),
+                              it);
+        }
+    };
     // construct a config
-    seqan::hibf::config hibf_config{.input_fn = get_user_bin_data,                   // required
-                                    .number_of_user_bins = all_bins_together.size(), // required
+    seqan::hibf::config hibf_config{.input_fn = get_user_bin_data,                // required
+                                    .number_of_user_bins = user_bin_paths.size(), // required
                                     .number_of_hash_functions = 2u,
                                     .maximum_fpr = 0.05,
                                     .threads = 1u};
@@ -83,13 +82,6 @@ void build(configuration const & config)
     cereal::BinaryOutputArchive oarchive{os};
     oarchive(hibf);
 
-    if (count_files == 0)
-    {
-        throw std::runtime_error{"No valid files found in the file list."};
-    }
-    else
-    {
-        std::cout << "HIBF index built and saved to " << config.index_output << '\n';
-        std::cout << "Successfully processed " << count_files << " files.\n";
-    }
+    std::cout << "HIBF index built and saved to " << config.index_output << "\n";
+    std::cout << "Successfully processed " << user_bin_paths.size() << " files.\n";
 }
