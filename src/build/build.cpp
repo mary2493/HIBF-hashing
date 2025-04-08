@@ -35,61 +35,29 @@ void build(configuration const & config)
         if every character is a whitespace (e.g., space, tab, newline) and false if at least one character is not a whitespace */
         if (current_line.empty() || std::all_of(current_line.begin(), current_line.end(), isspace))
         {
-            std::cerr << "Error: Empty line or invalid entry in the file list.\n";
-            continue;
+            throw std::runtime_error{"Empty line or invalid entry in the file list."};
         }
 
-        try
-        {
-            seqan3::sequence_file_input<seqan3::sequence_file_input_default_traits_dna> current_fasta_file{
-                current_line};
-            std::vector<uint64_t> bin_for_kmers;
+        seqan3::sequence_file_input<seqan3::sequence_file_input_default_traits_dna> current_fasta_file{current_line};
+        std::vector<uint64_t> bin_for_kmers;
 
-            //kmers of each file are assigned to a user bin
-            for (auto & record : current_fasta_file)
+        //kmers of each file are assigned to a user bin
+        for (auto & record : current_fasta_file)
+        {
+            //Checking if the sequence is shorter than the k-mer size
+            if (record.sequence().size() < config.kmer_size)
             {
-                //Checking if the sequence is shorter than the k-mer size
-                if (record.sequence().size() < config.kmer_size)
-                {
-                    std::cerr << "Error: Sequence in file " << current_line
-                              << " is shorter than the k-mer size. Skipping sequence.\n";
-                    continue;
-                }
-
-                //Extracting kmers from the sequence and storing them in bin_for_kmers
-                auto kmers =
-                    record.sequence() | seqan3::views::kmer_hash(seqan3::shape{seqan3::ungapped{config.kmer_size}});
-                bin_for_kmers.insert(bin_for_kmers.end(), kmers.begin(), kmers.end());
+                throw std::runtime_error{"Sequence in file " + current_line
+                                         + " is shorter than the k-mer size."};
             }
-            all_bins_together.push_back(std::move(bin_for_kmers));
-            count_files++;
+
+            //Extracting kmers from the sequence and storing them in bin_for_kmers
+            auto kmers =
+                record.sequence() | seqan3::views::kmer_hash(seqan3::shape{seqan3::ungapped{config.kmer_size}});
+            bin_for_kmers.insert(bin_for_kmers.end(), kmers.begin(), kmers.end());
         }
-        catch (seqan3::file_open_error const & e)
-        {
-            std::cerr << "Error: Could not open file " << current_line << ".\n";
-            continue;
-        }
-        catch (seqan3::parse_error const & e)
-        {
-            std::cerr << "Error: Could not parse file " << current_line << ".\n";
-            continue;
-        }
-        catch (seqan3::unhandled_extension_error const & e)
-        {
-            std::cerr << "Error: Unsupported file format for file " << current_line << ".\n";
-            continue;
-        }
-        catch (std::bad_alloc const & e)
-        {
-            std::cerr << "Error: Memory allocation failed while processing file " << current_line << ".\n";
-            continue;
-        }
-        catch (std::exception const & e)
-        {
-            std::cerr << "Error: An unexpected error occurred while processing file " << current_line << ": "
-                      << e.what() << "\n";
-            continue;
-        }
+        all_bins_together.push_back(std::move(bin_for_kmers));
+        count_files++;
 
         //The code below for building the HIBF index was copied from the https://github.com/seqan/hibf/tree/main website and adapted to the task
         //Iteration over all k-mers in the corresponding all_bins_together[user_bin_id] and insertion of these k-mers into it
@@ -114,13 +82,14 @@ void build(configuration const & config)
         cereal::BinaryOutputArchive oarchive{os};
         oarchive(hibf);
     }
-    std::cout << "HIBF index built and saved to " << config.index_output << '\n';
+
     if (count_files == 0)
     {
-        std::cerr << "Error: No valid files found in the file list.\n";
+        throw std::runtime_error{"No valid files found in the file list."};
     }
     else
     {
-        std::cout << "Successfully processed " << count_files << " files.\n";
+        std::cout << "HIBF index built and saved to " << config.index_output << '\n';
+        std::cout << "Successfully processed " << count_files << " files.";
     }
 }

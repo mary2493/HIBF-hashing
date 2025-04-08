@@ -33,10 +33,17 @@ int main(int argc, char ** argv)
     // hold a reference to the sub_parser
     sharg::parser & sub_parser = parser.get_sub_parser();
 
-    if (sub_parser.info.app_name == std::string_view{"HIBF-hashing-build"})
-        run_build(sub_parser);
-    else if (sub_parser.info.app_name == std::string_view{"HIBF-hashing-search"})
-        run_search(sub_parser);
-
+    try
+    {
+        if (sub_parser.info.app_name == std::string_view{"HIBF-hashing-build"})
+            run_build(sub_parser);
+        else if (sub_parser.info.app_name == std::string_view{"HIBF-hashing-search"})
+            run_search(sub_parser);
+    }
+    catch (std::exception const & ext)
+    {
+        std::cerr << "[Error] " << ext.what() << '\n';
+        std::exit(-1);
+    }
     return 0;
 }

@@ -19,17 +19,10 @@ void search(configuration const & config)
 {
 
     seqan::hibf::hierarchical_interleaved_bloom_filter hibf;
-    try
-    {
-        std::ifstream is{config.index_file, std::ios::binary};
-        cereal::BinaryInputArchive iarchive{is};
-        iarchive(hibf);
-    }
-    catch (std::exception const & e)
-    {
-        std::cerr << "Error: Failed to load index from " << config.index_file << ": " << e.what() << '\n';
-        return;
-    }
+
+    std::ifstream is{config.index_file, std::ios::binary};
+    cereal::BinaryInputArchive iarchive{is};
+    iarchive(hibf);
 
     seqan3::sequence_file_input<seqan3::sequence_file_input_default_traits_dna> reads_file{config.reads};
     std::vector<std::string> matched_reads;
@@ -44,7 +37,7 @@ void search(configuration const & config)
         auto kmer_view =
             record.sequence() | seqan3::views::kmer_hash(seqan3::shape{seqan3::ungapped{config.kmer_size}});
         auto & result = agent.membership_for(kmer_view, threshold);
-        
+
         //output console
         std::cout << record.id() << ": [";
         for (size_t i = 0; i < result.size(); ++i)
@@ -54,8 +47,7 @@ void search(configuration const & config)
                 std::cout << ",";
         }
         std::cout << "]\n";
-        
-        
+
         //save to file
         result_out << record.id() << ": ";
         for (size_t i = 0; i < result.size(); ++i)
