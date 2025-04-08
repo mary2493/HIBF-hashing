@@ -2,13 +2,12 @@
 
 #include <algorithm> // for std::all_of
 #include <cctype>    // for isspace
-#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <vector>
 
 #include <seqan3/io/sequence_file/all.hpp>
-#include <seqan3/search/views/kmer_hash.hpp>
+#include <seqan3/search/views/minimiser_hash.hpp>
 
 #include <cereal/archives/binary.hpp>
 #include <hibf/config.hpp>
@@ -40,6 +39,7 @@ void build(configuration const & config)
 
         seqan3::sequence_file_input<seqan3::sequence_file_input_default_traits_dna> current_fasta_file{current_line};
         std::vector<uint64_t> bin_for_kmers;
+        std::vector<uint64_t> bin_for_hashes;
 
         //kmers of each file are assigned to a user bin
         for (auto & record : current_fasta_file)
@@ -51,11 +51,13 @@ void build(configuration const & config)
             }
 
             //Extracting kmers from the sequence and storing them in bin_for_kmers
-            auto kmers =
-                record.sequence() | seqan3::views::kmer_hash(seqan3::shape{seqan3::ungapped{config.kmer_size}});
-            bin_for_kmers.insert(bin_for_kmers.end(), kmers.begin(), kmers.end());
+            auto kmers = record.sequence()
+                       | seqan3::views::minimiser_hash(seqan3::ungapped{config.kmer_size},
+                                                       seqan3::window_size{config.kmer_size});
+            for (uint64_t hash : kmers)
+                bin_for_hashes.push_back(hash);
         }
-        all_bins_together.push_back(std::move(bin_for_kmers));
+        all_bins_together.push_back(std::move(bin_for_hashes));
         count_files++;
     }
     //The code below for building the HIBF index was copied from the https://github.com/seqan/hibf/tree/main website and adapted to the task
@@ -88,6 +90,6 @@ void build(configuration const & config)
     else
     {
         std::cout << "HIBF index built and saved to " << config.index_output << '\n';
-        std::cout << "Successfully processed " << count_files << " files.";
+        std::cout << "Successfully processed " << count_files << " files.\n";
     }
 }

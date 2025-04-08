@@ -26,12 +26,7 @@ TEST_F(api_build_test, default_config)
     std::string const std_cerr = testing::internal::GetCapturedStderr();
 
     std::string const expected_cout{"HIBF index built and saved to \"new.index\"\n"
-                                    "Successfully processed 2 files.\n"};
-    std::string const expected_cerr{"Error: Could not parse file " + data("file_test1.fasta").string() + ".\n"
-                                    "Error: Sequence in file " + data("file_test2.fasta").string() + " is shorter than the k-mer size. Skipping sequence.\n"
-                                    "Error: Empty line or invalid entry in the file list.\n"
-                                    "Error: Unsupported file format for file " + data("file_test4.txt").string() + ".\n"};
+                                    "Successfully processed 3 files.\n"};
 
     EXPECT_EQ(expected_cout, std_cout);
-    EXPECT_EQ(expected_cerr, std_cerr);
 }

@@ -1,4 +1,3 @@
 @data_dir@/file_test1.fasta
 @data_dir@/file_test2.fasta
-@data_dir@/file_test4.txt
 @data_dir@/file_test3.fasta

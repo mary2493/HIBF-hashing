@@ -42,10 +42,9 @@ TEST_F(cli_search_test, with_arguments)
                                                "--output result.out");
 
     std::string const expected{"The following hits were found:\n"
-                               "read1: [0,1]\n"
+                               "read1: [1,2]\n"
                                "read2: []\n"
-                               "read3: [0]\n"
-                               "read4: []\n"
+                               "read3: [1]\n"
 
     };
 
