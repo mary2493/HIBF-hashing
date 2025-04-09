@@ -35,7 +35,7 @@ TEST_F(cli_build_test, with_arguments)
     app_test_result const result = execute_app("HIBF-hashing",
                                                "build",
                                                "--input",
-                                               data("file_list.txt"),
+                                               data("file_list_for_tests.txt"),
                                                "--output new.index",
                                                "--kmer 20");
 
@@ -48,7 +48,7 @@ TEST_F(cli_build_test, with_arguments)
 
 TEST_F(cli_build_test, missing_path)
 {
-    app_test_result const result = execute_app("HIBF-hashing", "build", "--input", data("file_list.txt"), "-o", "");
+    app_test_result const result = execute_app("HIBF-hashing", "build", "--input", data("file_list_for_tests.txt"), "-o", "");
 
     EXPECT_FAILURE(result);
     EXPECT_EQ(result.out, "");
@@ -68,7 +68,7 @@ TEST_F(cli_build_test, invalid_input_path)
 TEST_F(cli_build_test, invalid_output_path)
 {
     app_test_result const result =
-        execute_app("HIBF-hashing", "build", "--input", data("file_list.txt"), "--output does/not/exist");
+        execute_app("HIBF-hashing", "build", "--input", data("file_list_for_tests.txt"), "--output does/not/exist");
 
     EXPECT_FAILURE(result);
     EXPECT_EQ(result.out, "");

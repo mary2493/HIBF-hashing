@@ -18,7 +18,7 @@
 
 void build(configuration const & config)
 {
-        using sequence_file_t = seqan3::sequence_file_input<seqan3::sequence_file_input_default_traits_dna>;
+    using sequence_file_t = seqan3::sequence_file_input<seqan3::sequence_file_input_default_traits_dna>;
 
     std::ifstream file_list(config.file_list_path);
     std::string current_line;
