@@ -52,8 +52,11 @@ void build(configuration const & config)
     if (user_bin_paths.empty())
         throw std::runtime_error{"No valid files found in the file list."};
 
+    auto minimiser_view =
+        seqan3::views::minimiser_hash(seqan3::ungapped{config.kmer_size}, seqan3::window_size{config.kmer_size});
+
     auto get_user_bin_data = [&](size_t const user_bin_id, seqan::hibf::insert_iterator it)
-    {   
+    {
         sequence_file_t fin{user_bin_paths[user_bin_id]};
         for (auto & record : fin)
         {
@@ -61,10 +64,7 @@ void build(configuration const & config)
                 throw std::runtime_error{"Sequence in " + user_bin_paths[user_bin_id]
                                          + " is shorter than the k-mer size."};
 
-            std::ranges::copy(record.sequence()
-                                  | seqan3::views::minimiser_hash(seqan3::ungapped{config.kmer_size},
-                                                                  seqan3::window_size{config.kmer_size}),
-                              it);
+            std::ranges::copy(record.sequence() | minimiser_view, it);
         }
     };
     // construct a config
