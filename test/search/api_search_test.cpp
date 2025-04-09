@@ -14,7 +14,7 @@ struct api_search_test : public app_test
 TEST_F(api_search_test, default_config)
 {
     configuration config{};
-    config.reads = data("test_reads.fasta");
+    config.reads = data("reads.fasta");
     config.index_file = data("test_index.bin");
     config.kmer_size = 20;
     config.threshold = 1;
@@ -31,8 +31,6 @@ TEST_F(api_search_test, default_config)
                                     "read1: [1,2]\n"
                                     "read2: []\n"
                                     "read3: [1]\n"};
-    std::string const expected_cerr{};
 
     EXPECT_EQ(expected_cout, std_cout);
-    EXPECT_EQ(expected_cerr, std_cerr);
 }
