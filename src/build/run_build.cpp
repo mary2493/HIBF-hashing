@@ -31,6 +31,20 @@ void run_build(sharg::parser & parser)
                                     .description = "The k-mer size to use.",
                                     .validator = sharg::arithmetic_range_validator{1, 32}});
 
+    std::string hash_type_string;
+    parser.add_option(hash_type_string,
+                      sharg::config{.short_id = 't',
+                                    .long_id = "type",
+                                    .description = "hash type to use: kmer / minimiser / syncmer",
+                                    .validator = sharg::value_list_validator{"kmer", "minimiser", "syncmer"}});
+
+    if (hash_type_string == "kmer")
+        config.hash = hash_type::kmer;
+    else if (hash_type_string == "minimiser")
+        config.hash = hash_type::minimiser;
+    else if (hash_type_string == "syncmer")
+        config.hash = hash_type::syncmer;
+
     try
     {
         parser.parse(); // Trigger command line parsing.
