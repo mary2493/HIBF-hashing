@@ -1,3 +1,0 @@
-read1: read1: [1,2]
-read2: read2: []
-read3: read3: [1]
