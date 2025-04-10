@@ -55,15 +55,23 @@ void build(configuration const & config)
     auto current_view = [&]()
     {
         if (config.hash == hash_type::kmer)
+        {
             return seqan3::views::minimiser_hash(seqan3::ungapped{config.kmer_size},
                                                  seqan3::window_size{config.kmer_size});
+        }
 
         else if (config.hash == hash_type::minimiser)
+        {
             return seqan3::views::minimiser_hash(seqan3::ungapped{config.kmer_size},
                                                  seqan3::window_size{config.window_size});
+        }
 
-        // else return seqan3::views::syncmer_hash(seqan3::ungapped{config.kmer_size}, seqan3::window_size{config.window_size}, seqan3::s{config.s});
-    }();
+        else
+        {
+            throw std::runtime_error{"Syncmer support is not yet implemented. Please use kmer or minimiser."};
+        }
+    };
+
 
     auto get_user_bin_data = [&](size_t const user_bin_id, seqan::hibf::insert_iterator it)
     {
@@ -74,7 +82,7 @@ void build(configuration const & config)
                 throw std::runtime_error{"Sequence in " + user_bin_paths[user_bin_id]
                                          + " is shorter than the k-mer size."};
 
-            std::ranges::copy(record.sequence() | current_view, it);
+            std::ranges::copy(record.sequence() | current_view(), it);
         }
     };
     // construct a config
