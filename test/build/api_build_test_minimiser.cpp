@@ -11,26 +11,6 @@
 struct api_build_test : public app_test
 {};
 
-TEST_F(api_build_test, default_config_kmer)
-{
-    configuration config{};
-    config.file_list_path = data("file_list_for_tests.txt");
-    config.index_output = "new_kmer.index";
-    config.kmer_size = 20;
-    config.hash = hash_type::kmer;
-    testing::internal::CaptureStdout();
-    testing::internal::CaptureStderr();
-
-    build(config);
-
-    std::string const std_cout = testing::internal::GetCapturedStdout();
-    std::string const std_cerr = testing::internal::GetCapturedStderr();
-
-    std::string const expected_cout{"HIBF index built and saved to \"new_kmer.index\"\n"
-                                    "Successfully processed 3 files.\n"};
-
-    EXPECT_EQ(expected_cout, std_cout);
-}
 TEST_F(api_build_test, default_config_minimiser)
 {
     configuration config{};

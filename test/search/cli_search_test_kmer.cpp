@@ -22,7 +22,7 @@ TEST_F(cli_search_test, no_options)
 
 TEST_F(cli_search_test, missing_required_argument)
 {
-    app_test_result const result = execute_app("HIBF-hashing", "search", "-e", "-o", "w", "-t");
+    app_test_result const result = execute_app("HIBF-hashing", "search", "-e", "-o", "-w", "-t");
     std::string_view const expected{"Parsing error. Option -i/--index is required but not set.\n"};
 
     EXPECT_FAILURE(result);
@@ -63,8 +63,6 @@ TEST_F(cli_search_test, missing_path)
                                                "--reads",
                                                data("reads.fasta"),
                                                "--error 1",
-                                               "--output",
-                                               data("search_test.txt"),
                                                "-o",
                                                "");
 
