@@ -15,7 +15,7 @@ TEST_F(api_search_test, default_config)
 {
     configuration config{};
     config.reads = data("reads.fasta");
-    config.index_file = data("test_index.bin");
+    config.index_file = data("test_index_kmer.bin");
     config.kmer_size = 20;
     config.threshold = 1;
 

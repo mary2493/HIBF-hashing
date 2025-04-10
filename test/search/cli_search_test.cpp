@@ -22,7 +22,7 @@ TEST_F(cli_search_test, no_options)
 
 TEST_F(cli_search_test, missing_required_argument)
 {
-    app_test_result const result = execute_app("HIBF-hashing", "search", "-e", "-o");
+    app_test_result const result = execute_app("HIBF-hashing", "search", "-e", "-o", "w", "-t");
     std::string_view const expected{"Parsing error. Option -i/--index is required but not set.\n"};
 
     EXPECT_FAILURE(result);
@@ -35,11 +35,13 @@ TEST_F(cli_search_test, with_arguments)
     app_test_result const result = execute_app("HIBF-hashing",
                                                "search",
                                                "--index",
-                                               data("test_index.bin"),
+                                               data("test_index_kmer.bin"),
                                                "--reads",
                                                data("reads.fasta"),
                                                "--error 1",
-                                               "--output result.out");
+                                               "--output result.out",
+                                               "--window 20",
+                                               "--type kmer");
 
     std::string const expected{"The following hits were found:\n"
                                "read1: [1,2]\n"
@@ -57,7 +59,7 @@ TEST_F(cli_search_test, missing_path)
     app_test_result const result = execute_app("HIBF-hashing",
                                                "search",
                                                "--index",
-                                               data("test_index.bin"),
+                                               data("test_index_kmer.bin"),
                                                "--reads",
                                                data("reads.fasta"),
                                                "--error 1",
@@ -86,7 +88,7 @@ TEST_F(cli_search_test, invalid_output_path)
     app_test_result const result = execute_app("HIBF-hashing",
                                                "search",
                                                "--index",
-                                               data("test_index.bin"),
+                                               data("test_index_kmer.bin"),
                                                "--reads",
                                                data("reads.fasta"),
                                                "--error 1",

@@ -35,13 +35,30 @@ void search(configuration const & config)
             throw std::runtime_error{"read in file is shorter than the k-mer size."};
         }
 
-        auto kmer_view =
-            record.sequence()
-            | seqan3::views::minimiser_hash(seqan3::ungapped{config.kmer_size}, seqan3::window_size{config.kmer_size});
-        auto & result = agent.membership_for(kmer_view, threshold);
+        auto current_hash = [&]()
+        {
+            if (config.hash == hash_type::kmer)
+            {
+                return record.sequence()
+                     | seqan3::views::minimiser_hash(seqan3::ungapped{config.kmer_size},
+                                                     seqan3::window_size{config.kmer_size});
+            }
+            else if (config.hash == hash_type::minimiser)
+            {
+                return record.sequence()
+                     | seqan3::views::minimiser_hash(seqan3::ungapped{config.kmer_size},
+                                                     seqan3::window_size{config.window_size});
+            }
+            else
+            {
+                throw std::runtime_error{"Syncmer support is not yet implemented. Please use kmer or minimiser."};
+            }
+        }();
+
+        auto & result = agent.membership_for(current_hash, threshold);
 
         std::string current_read = record.id() + ": [";
-        
+
         for (size_t i = 0; i < result.size(); ++i)
         {
             current_read += std::to_string(result[i]);

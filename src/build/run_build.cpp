@@ -31,8 +31,7 @@ void run_build(sharg::parser & parser)
                                     .description = "The k-mer size to use.",
                                     .validator = sharg::arithmetic_range_validator{1, 32}});
 
-    uint8_t window_size{config.kmer_size};
-    parser.add_option(window_size,
+    parser.add_option(config.window_size,
                       sharg::config{.short_id = 'w',
                                     .long_id = "window",
                                     .description = "The window size for minimisers (defaults to kmer size).",
