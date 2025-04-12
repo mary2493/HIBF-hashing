@@ -12,7 +12,6 @@
 
 void search(configuration const & config)
 {
-
     seqan::hibf::hierarchical_interleaved_bloom_filter hibf;
 
     std::ifstream is{config.index_file, std::ios::binary};

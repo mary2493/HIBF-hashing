@@ -69,7 +69,7 @@ void build(configuration const & config)
     }
 
     auto minimise_view =
-        seqan3::views::minimiser_hash(seqan3::ungapped{config.kmer_size}, seqan3::window_size{config.window_size});
+        seqan3::views::minimiser_hash(seqan3::ungapped{config.kmer_size}, seqan3::window_size{current_hash});
     auto get_user_bin_data = [&](size_t const user_bin_id, seqan::hibf::insert_iterator it)
     {
         sequence_file_t fin{user_bin_paths[user_bin_id]};
