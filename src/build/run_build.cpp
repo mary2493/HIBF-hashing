@@ -39,8 +39,8 @@ void run_build(sharg::parser & parser)
 
     std::string hash_type_string;
     parser.add_option(hash_type_string,
-                      sharg::config{.short_id = 't',
-                                    .long_id = "type",
+                      sharg::config{.short_id = 'h',
+                                    .long_id = "hash",
                                     .description = "hash type to use: kmer / minimiser / syncmer",
                                     .validator = sharg::value_list_validator{"kmer", "minimiser", "syncmer"}});
 

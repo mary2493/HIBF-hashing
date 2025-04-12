@@ -52,27 +52,24 @@ void build(configuration const & config)
     if (user_bin_paths.empty())
         throw std::runtime_error{"No valid files found in the file list."};
 
-    auto current_view = [&]()
+    uint8_t current_hash = 0u;
+    if (config.hash == hash_type::kmer)
     {
-        if (config.hash == hash_type::kmer)
-        {
-            return seqan3::views::minimiser_hash(seqan3::ungapped{config.kmer_size},
-                                                 seqan3::window_size{config.kmer_size});
-        }
+        current_hash = config.kmer_size;
+    }
 
-        else if (config.hash == hash_type::minimiser)
-        {
-            return seqan3::views::minimiser_hash(seqan3::ungapped{config.kmer_size},
-                                                 seqan3::window_size{config.window_size});
-        }
+    else if (config.hash == hash_type::minimiser)
+    {
+        current_hash = config.window_size;
+    }
 
-        else
-        {
-            throw std::runtime_error{"Syncmer support is not yet implemented. Please use kmer or minimiser."};
-        }
-    };
+    else
+    {
+        throw std::runtime_error{"Syncmer support is not yet implemented. Please use kmer or minimiser."};
+    }
 
-
+    auto minimise_view =
+        seqan3::views::minimiser_hash(seqan3::ungapped{config.kmer_size}, seqan3::window_size{config.window_size});
     auto get_user_bin_data = [&](size_t const user_bin_id, seqan::hibf::insert_iterator it)
     {
         sequence_file_t fin{user_bin_paths[user_bin_id]};
@@ -82,7 +79,7 @@ void build(configuration const & config)
                 throw std::runtime_error{"Sequence in " + user_bin_paths[user_bin_id]
                                          + " is shorter than the k-mer size."};
 
-            std::ranges::copy(record.sequence() | current_view(), it);
+            std::ranges::copy(record.sequence() | minimise_view, it);
         }
     };
     // construct a config
