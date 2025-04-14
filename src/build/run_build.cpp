@@ -23,7 +23,7 @@ void run_build(sharg::parser & parser)
         sharg::config{.short_id = 'o',
                       .long_id = "output",
                       .description = "Where to store the index.",
-                      .validator = sharg::output_file_validator{sharg::output_file_open_options::create_new}});
+                      .validator = sharg::output_file_validator{sharg::output_file_open_options::open_or_create}});
 
     parser.add_option(config.kmer_size,
                       sharg::config{.short_id = 'k',

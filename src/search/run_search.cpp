@@ -36,7 +36,7 @@ void run_search(sharg::parser & parser)
         sharg::config{.short_id = 'o',
                       .long_id = "output",
                       .description = ".txt file to write the search results to.",
-                      .validator = sharg::output_file_validator{sharg::output_file_open_options::create_new}});
+                      .validator = sharg::output_file_validator{sharg::output_file_open_options::open_or_create}});
 
     parser.add_option(config.kmer_size,
                       sharg::config{.short_id = 'k',
