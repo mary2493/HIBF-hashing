@@ -6,6 +6,7 @@
 #include <seqan3/search/search.hpp>
 #include <seqan3/search/views/minimiser_hash.hpp>
 
+#include "hash_utils.hpp"
 #include <cereal/archives/binary.hpp>
 #include <hibf/config.hpp>
 #include <hibf/hierarchical_interleaved_bloom_filter.hpp>
@@ -34,9 +35,11 @@ void search(configuration const & config)
             throw std::runtime_error{"read in file is shorter than the k-mer size."};
         }
 
+        uint8_t current_hash = determine_current_hash(config);
+
         auto minimiser_view =
             record.sequence()
-            | seqan3::views::minimiser_hash(seqan3::ungapped{config.kmer_size}, seqan3::window_size{config.kmer_size});
+            | seqan3::views::minimiser_hash(seqan3::ungapped{config.kmer_size}, seqan3::window_size{current_hash});
 
         auto & result = agent.membership_for(minimiser_view, threshold);
 
