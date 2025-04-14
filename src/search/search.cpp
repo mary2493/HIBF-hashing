@@ -42,6 +42,7 @@ void search(configuration const & config)
             | seqan3::views::minimiser_hash(seqan3::ungapped{config.kmer_size}, seqan3::window_size{current_hash});
 
         auto & result = agent.membership_for(minimiser_view, threshold);
+        agent.sort_results();
 
         std::string current_read = record.id() + ": [";
 
