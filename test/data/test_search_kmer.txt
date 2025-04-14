@@ -1,5 +1,3 @@
-read1: [0]
-read2: [1]
-read3: [2]
-read4: [1,0]
-read5: []
+read1: [1,2]
+read2: []
+read3: [1]
