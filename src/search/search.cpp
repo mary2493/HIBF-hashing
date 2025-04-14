@@ -6,22 +6,21 @@
 #include <seqan3/search/search.hpp>
 #include <seqan3/search/views/minimiser_hash.hpp>
 
-#include "hash_utils.hpp"
+#include "index_data.hpp"
 #include <cereal/archives/binary.hpp>
 #include <hibf/config.hpp>
 #include <hibf/hierarchical_interleaved_bloom_filter.hpp>
 
 void search(configuration const & config)
 {
-    seqan::hibf::hierarchical_interleaved_bloom_filter hibf;
+    using sequence_file_t = seqan3::sequence_file_input<seqan3::sequence_file_input_default_traits_dna>;
 
-    std::ifstream is{config.index_file, std::ios::binary};
-    cereal::BinaryInputArchive iarchive{is};
-    iarchive(hibf);
+    myindex index{};
+    index.load(config.index_file);
 
-    seqan3::sequence_file_input<seqan3::sequence_file_input_default_traits_dna> reads_file{config.reads};
+    sequence_file_t reads_file{config.reads};
 
-    auto agent = hibf.membership_agent();
+    auto agent = index.hibf.membership_agent();
     size_t threshold = config.threshold;
 
     //for storing the results
@@ -30,16 +29,14 @@ void search(configuration const & config)
 
     for (auto & record : reads_file)
     {
-        if (record.sequence().size() < config.kmer_size)
+        if (record.sequence().size() < index.kmer_size)
         {
             throw std::runtime_error{"read in file is shorter than the k-mer size."};
         }
 
-        uint8_t current_hash = determine_current_hash(config);
-
         auto minimiser_view =
             record.sequence()
-            | seqan3::views::minimiser_hash(seqan3::ungapped{config.kmer_size}, seqan3::window_size{current_hash});
+            | seqan3::views::minimiser_hash(seqan3::ungapped{index.kmer_size}, seqan3::window_size{index.window_size});
 
         auto & result = agent.membership_for(minimiser_view, threshold);
         agent.sort_results();

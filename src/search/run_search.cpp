@@ -38,31 +38,6 @@ void run_search(sharg::parser & parser)
                       .description = ".txt file to write the search results to.",
                       .validator = sharg::output_file_validator{sharg::output_file_open_options::open_or_create}});
 
-    parser.add_option(config.kmer_size,
-                      sharg::config{.short_id = 'k',
-                                    .long_id = "kmer",
-                                    .description = "The k-mer size to use.",
-                                    .validator = sharg::arithmetic_range_validator{1, 32}});
-    parser.add_option(config.window_size,
-                      sharg::config{.short_id = 'w',
-                                    .long_id = "window",
-                                    .description = "The window size for minimisers (defaults to kmer size).",
-                                    .validator = sharg::arithmetic_range_validator{1, 32}});
-
-    std::string hash_type_string;
-    parser.add_option(hash_type_string,
-                      sharg::config{.short_id = 'm',
-                                    .long_id = "mode",
-                                    .description = "hash type to use: kmer / minimiser / syncmer",
-                                    .validator = sharg::value_list_validator{"kmer", "minimiser", "syncmer"}});
-
-    if (hash_type_string == "kmer")
-        config.hash = hash_type::kmer;
-    else if (hash_type_string == "minimiser")
-        config.hash = hash_type::minimiser;
-    else if (hash_type_string == "syncmer")
-        config.hash = hash_type::syncmer;
-
     try
     {
         parser.parse(); // Trigger command line parsing.

@@ -12,7 +12,7 @@
 #include <seqan3/io/sequence_file/all.hpp>
 #include <seqan3/search/views/minimiser_hash.hpp>
 
-#include "hash_utils.hpp"
+#include "index_data.hpp"
 #include <cereal/archives/binary.hpp>
 #include <hibf/config.hpp>
 #include <hibf/hierarchical_interleaved_bloom_filter.hpp>
@@ -53,7 +53,13 @@ void build(configuration const & config)
     if (user_bin_paths.empty())
         throw std::runtime_error{"No valid files found in the file list."};
 
-    uint8_t current_hash = determine_current_hash(config);
+    uint8_t current_hash = 0u;
+    if (config.hash == hash_type::kmer)
+        current_hash = config.kmer_size;
+    else if (config.hash == hash_type::minimiser)
+        current_hash = config.window_size;
+    else
+        throw std::runtime_error{"Syncmer support is not yet implemented. Please use kmer or minimiser."};
 
     auto minimiser_view =
         seqan3::views::minimiser_hash(seqan3::ungapped{config.kmer_size}, seqan3::window_size{current_hash});
@@ -80,9 +86,8 @@ void build(configuration const & config)
     seqan::hibf::hierarchical_interleaved_bloom_filter hibf{hibf_config};
 
     //The indices can also be stored and loaded from disk by using cereal
-    std::ofstream os{config.index_output, std::ios::binary};
-    cereal::BinaryOutputArchive oarchive{os};
-    oarchive(hibf);
+    myindex index{config.kmer_size, current_hash, std::move(hibf)};
+    index.store(config.index_output);
 
     std::cout << "HIBF index built and saved to " << config.index_output << "\n";
     std::cout << "Successfully processed " << user_bin_paths.size() << " files.\n";
