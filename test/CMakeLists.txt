@@ -11,14 +11,9 @@ include (test/config)
 # This includes `test/data/datasources.cmake`, which makes test data available to the tests.
 include (data/datasources.cmake)
 
-add_app_test (build/api_build_test_kmer.cpp)
-add_app_test (build/cli_build_test_kmer.cpp)
-add_app_test (search/api_search_test_kmer.cpp)
-add_app_test (search/cli_search_test_kmer.cpp)
-
-add_app_test (build/api_build_test_minimiser.cpp)
-add_app_test (build/cli_build_test_minimiser.cpp)
-add_app_test (search/api_search_test_minimiser.cpp)
-add_app_test (search/cli_search_test_minimiser.cpp)
+add_app_test (build/api_build_test.cpp)
+add_app_test (build/cli_build_test.cpp)
+add_app_test (search/api_search_test.cpp)
+add_app_test (search/cli_search_test.cpp)
 
 message (STATUS "You can run `make check` to build and run tests.")

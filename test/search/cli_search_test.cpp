@@ -20,9 +20,9 @@ TEST_F(cli_search_test, no_options)
     EXPECT_EQ(result.err, "");
 }
 
-TEST_F(cli_search_test, missing_required_argument)
+TEST_F(cli_search_test, missing_required_argument_index)
 {
-    app_test_result const result = execute_app("HIBF-hashing", "search", "-e", "-o", "-w", "-t");
+    app_test_result const result = execute_app("HIBF-hashing", "search", "--reads", data("reads.fasta"));
     std::string_view const expected{"Parsing error. Option -i/--index is required but not set.\n"};
 
     EXPECT_FAILURE(result);
@@ -30,7 +30,18 @@ TEST_F(cli_search_test, missing_required_argument)
     EXPECT_EQ(result.err, expected);
 }
 
-TEST_F(cli_search_test, with_arguments)
+TEST_F(cli_search_test, missing_required_argument_reads)
+{
+    app_test_result const result =
+        execute_app("HIBF-hashing", "search", "index", data("test_index_kmer.bin"), "--output result.out");
+    std::string_view const expected{"Parsing error. Option -i/--index is required but not set.\n"};
+
+    EXPECT_FAILURE(result);
+    EXPECT_EQ(result.out, "");
+    EXPECT_EQ(result.err, expected);
+}
+
+TEST_F(cli_search_test, with_arguments_kmer)
 {
     app_test_result const result = execute_app("HIBF-hashing",
                                                "search",
@@ -38,10 +49,28 @@ TEST_F(cli_search_test, with_arguments)
                                                data("test_index_kmer.bin"),
                                                "--reads",
                                                data("reads.fasta"),
-                                               "--error 1",
-                                               "--output result.out",
-                                               "--window 20",
-                                               "--type kmer");
+                                               "--output result.out");
+
+    std::string const expected{"The following hits were found:\n"
+                               "read1: [1,2]\n"
+                               "read2: []\n"
+                               "read3: [1]\n"
+
+    };
+
+    EXPECT_SUCCESS(result);
+    EXPECT_EQ(result.out, expected);
+}
+
+TEST_F(cli_search_test, with_arguments_minimiser)
+{
+    app_test_result const result = execute_app("HIBF-hashing",
+                                               "search",
+                                               "--index",
+                                               data("test_index_minimiser.bin"),
+                                               "--reads",
+                                               data("reads.fasta"),
+                                               "--output result.out");
 
     std::string const expected{"The following hits were found:\n"
                                "read1: [1,2]\n"
@@ -62,7 +91,6 @@ TEST_F(cli_search_test, missing_path)
                                                data("test_index_kmer.bin"),
                                                "--reads",
                                                data("reads.fasta"),
-                                               "--error 1",
                                                "-o",
                                                "");
 
@@ -89,7 +117,6 @@ TEST_F(cli_search_test, invalid_output_path)
                                                data("test_index_kmer.bin"),
                                                "--reads",
                                                data("reads.fasta"),
-                                               "--error 1",
                                                "--output does/not/exist");
 
     EXPECT_FAILURE(result);
