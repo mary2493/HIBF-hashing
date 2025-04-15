@@ -21,7 +21,7 @@ struct configuration
     std::filesystem::path reads{};
     std::filesystem::path search_output{"output.txt"};
     std::filesystem::path index_file{};
-    size_t threshold{1u};
+    size_t error{0u};
     hash_type hash{hash_type::kmer};
     uint8_t window_size{20u};
     uint8_t s{10u};

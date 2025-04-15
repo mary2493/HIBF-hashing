@@ -21,7 +21,7 @@ void search(configuration const & config)
     sequence_file_t reads_file{config.reads};
 
     auto agent = index.hibf.membership_agent();
-    size_t threshold = config.threshold;
+    size_t error = config.error;
 
     //for storing the results
     std::vector<std::string> result_for_cout;
@@ -38,7 +38,7 @@ void search(configuration const & config)
             record.sequence()
             | seqan3::views::minimiser_hash(seqan3::ungapped{index.kmer_size}, seqan3::window_size{index.window_size});
 
-        auto & result = agent.membership_for(minimiser_view, threshold);
+        auto & result = agent.membership_for(minimiser_view, error);
         agent.sort_results();
 
         std::string current_read = record.id() + ": [";

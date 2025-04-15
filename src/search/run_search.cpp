@@ -25,10 +25,10 @@ void run_search(sharg::parser & parser)
                                     .required = true,
                                     .validator = sharg::input_file_validator{}});
 
-    parser.add_option(config.threshold,
-                      sharg::config{.short_id = 't',
-                                    .long_id = "threshold",
-                                    .description = "threshold for mismatches",
+    parser.add_option(config.error,
+                      sharg::config{.short_id = 'e',
+                                    .long_id = "error",
+                                    .description = "The maximum number of errors allowed.",
                                     .validator = sharg::arithmetic_range_validator{1, 16}});
 
     parser.add_option(
