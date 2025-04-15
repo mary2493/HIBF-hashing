@@ -33,21 +33,26 @@ TEST_F(cli_build_test, missing_required_argument)
 TEST_F(cli_build_test, with_arguments)
 {
     app_test_result const result =
-        execute_app("HIBF-hashing", "build", "--input", data("in.fastq"), "--output new.index", "--kmer 32");
+        execute_app("HIBF-hashing", "build", "--input", data("file_list.txt"), "--output new.index", "--kmer 20");
 
-    std::string const expected{"\"" + data("in.fastq").string()
-                               + "\"\n"
-                                 "\"new.index\"\n"
-                                 "32\n"};
+    std::string const expected{
+    "HIBF index built and saved to \"new.index\"\n"
+    "Successfully processed 2 files.\n"};
 
     EXPECT_SUCCESS(result);
     EXPECT_EQ(result.out, expected);
-    EXPECT_EQ(result.err, "");
+
+    EXPECT_EQ(result.err,
+        "Error: Could not parse file " + data("file_test1.fasta").string() + ".\n"
+        "Error: Sequence in file " + data("file_test2.fasta").string() + " is shorter than the k-mer size. Skipping sequence.\n"
+        "Error: Empty line or invalid entry in the file list.\n"
+        "Error: Unsupported file format for file " + data("file_test4.txt").string() + ".\n"
+    );
 }
 
 TEST_F(cli_build_test, missing_path)
 {
-    app_test_result const result = execute_app("HIBF-hashing", "build", "--input", data("in.fastq"), "-o", "");
+    app_test_result const result = execute_app("HIBF-hashing", "build", "--input", data("file_list.txt"), "-o", "");
 
     EXPECT_FAILURE(result);
     EXPECT_EQ(result.out, "");
@@ -67,7 +72,7 @@ TEST_F(cli_build_test, invalid_input_path)
 TEST_F(cli_build_test, invalid_output_path)
 {
     app_test_result const result =
-        execute_app("HIBF-hashing", "build", "--input", data("in.fastq"), "--output does/not/exist");
+        execute_app("HIBF-hashing", "build", "--input", data("file_list.txt"), "--output does/not/exist");
 
     EXPECT_FAILURE(result);
     EXPECT_EQ(result.out, "");

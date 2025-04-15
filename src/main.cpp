@@ -5,6 +5,7 @@
 #include <sharg/all.hpp>
 
 #include "build/run_build.hpp"
+#include "search/run_search.hpp"
 
 int main(int argc, char ** argv)
 {
@@ -35,7 +36,7 @@ int main(int argc, char ** argv)
     if (sub_parser.info.app_name == std::string_view{"HIBF-hashing-build"})
         run_build(sub_parser);
     else if (sub_parser.info.app_name == std::string_view{"HIBF-hashing-search"})
-        return 0; // return run_search(sub_parser);
+        run_search(sub_parser);
 
     return 0;
 }
