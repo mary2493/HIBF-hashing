@@ -14,4 +14,7 @@ include (data/datasources.cmake)
 add_app_test (build/api_build_test.cpp)
 add_app_test (build/cli_build_test.cpp)
 
+add_app_test (search/api_search_test.cpp)
+add_app_test (search/cli_search_test.cpp)
+
 message (STATUS "You can run `make check` to build and run tests.")

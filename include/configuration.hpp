@@ -11,4 +11,8 @@ struct configuration
     std::filesystem::path file_list_path{};
     std::filesystem::path index_output{"index"};
     uint8_t kmer_size{20u};
+    std::filesystem::path reads{};
+    std::filesystem::path search_output{"output.txt"};
+    std::filesystem::path index_file{};
+    size_t threshold{1};
 };
