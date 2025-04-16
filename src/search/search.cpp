@@ -25,6 +25,7 @@ void search(configuration const & config)
 
     //for storing the results
     std::vector<std::string> results;
+    std::string current_read{};
 
     for (auto & record : reads_file)
     {
@@ -40,7 +41,8 @@ void search(configuration const & config)
         auto & result = agent.membership_for(minimiser_view, threshold);
         agent.sort_results();
 
-        std::string current_read = record.id() + ": [";
+        current_read.clear();
+        current_read += record.id() + ": [";
 
         for (size_t i = 0; i < result.size(); ++i)
         {
