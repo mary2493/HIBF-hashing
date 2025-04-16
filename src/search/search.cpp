@@ -24,8 +24,7 @@ void search(configuration const & config)
     size_t threshold = 1u;
 
     //for storing the results
-    std::vector<std::string> result_for_cout;
-    std::vector<std::string> result_for_txt;
+    std::vector<std::string> results;
 
     for (auto & record : reads_file)
     {
@@ -52,19 +51,18 @@ void search(configuration const & config)
         current_read += "]\n";
 
         // store the result in the vector
-        result_for_cout.push_back(current_read);
-        result_for_txt.push_back(current_read);
+        results.push_back(current_read);
     }
 
     std::cout << "The following hits were found:\n";
     //print to console
-    for (auto & record : result_for_cout)
+    for (auto & record : results)
     {
         std::cout << record;
     }
     //save to file
     std::ofstream result_out{config.search_output};
-    for (auto & record : result_for_txt)
+    for (auto & record : results)
     {
         result_out << record;
     }
