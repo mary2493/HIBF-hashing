@@ -60,6 +60,7 @@ jobs:
                 ${GITHUB_WORKSPACE}/build \
                 --filter ${GITHUB_WORKSPACE}/include \
                 --filter ${GITHUB_WORKSPACE}/src \
+                --exclude ${GITHUB_WORKSPACE}/include/contrib \
                 --exclude-lines-by-pattern '^\s*}|^\s*};|^\s*\.[^\s]+\s*=\s*\".*\"' \
                 --exclude-noncode-lines \
                 --exclude-throw-branches \

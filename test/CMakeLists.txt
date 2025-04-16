@@ -17,4 +17,8 @@ add_app_test (search/api_search_test.cpp)
 add_app_test (search/cli_provided_data_test.cpp)
 add_app_test (search/cli_search_test.cpp)
 
+# `make syncmer_example` will build the syncmer example.
+add_executable (syncmer_example EXCLUDE_FROM_ALL syncmer_example.cpp)
+target_link_libraries (syncmer_example HIBF-hashing_lib)
+
 message (STATUS "You can run `make check` to build and run tests.")
