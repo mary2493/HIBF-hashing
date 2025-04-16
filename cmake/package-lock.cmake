@@ -73,4 +73,13 @@ CPMDeclarePackage (use_ccache
                    EXCLUDE_FROM_ALL TRUE
 )
 
+# thresholding
+CPMDeclarePackage (thresholding
+                   NAME thresholding
+                   URL "${PROJECT_SOURCE_DIR}/contrib/threshold.tar.gz"
+                   URL_HASH SHA256=4990c7fb9778a2fb8a19794b966d57496ca77bcd708b4cee3c93eea6e5b67d80
+                   SYSTEM TRUE
+                   EXCLUDE_FROM_ALL TRUE
+)
+
 # cmake-format: on

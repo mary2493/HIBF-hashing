@@ -11,6 +11,8 @@
 #include <hibf/config.hpp>
 #include <hibf/hierarchical_interleaved_bloom_filter.hpp>
 
+#include <threshold/threshold.hpp>
+
 void search(configuration const & config)
 {
     using sequence_file_t = seqan3::sequence_file_input<seqan3::sequence_file_input_default_traits_dna>;

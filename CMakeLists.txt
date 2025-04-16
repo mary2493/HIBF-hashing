@@ -33,6 +33,7 @@ CPMGetPackage (use_ccache) # Speeds up compilation by caching files that have be
 CPMGetPackage (hibf) # (Hierarchical) Interleaved Bloom Filter
 CPMGetPackage (seqan3) # Sequence analysis
 CPMGetPackage (sharg) # Argument parser
+CPMGetPackage (thresholding) # Thresholding (requires seqan3 to be present)
 
 # Add the application. This will include `src/CMakeLists.txt`.
 add_subdirectory (src)
