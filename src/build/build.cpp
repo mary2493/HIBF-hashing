@@ -12,6 +12,7 @@
 #include <seqan3/io/sequence_file/all.hpp>
 #include <seqan3/search/views/minimiser_hash.hpp>
 
+#include "dna4_traits.hpp"
 #include "index_data.hpp"
 #include <cereal/archives/binary.hpp>
 #include <hibf/config.hpp>
@@ -19,7 +20,7 @@
 
 void build(configuration const & config)
 {
-    using sequence_file_t = seqan3::sequence_file_input<seqan3::sequence_file_input_default_traits_dna>;
+    using sequence_file_t = seqan3::sequence_file_input<dna4_traits>;
 
     std::ifstream file_list(config.file_list_path);
     std::string current_line;

@@ -22,14 +22,35 @@ struct search_test : public app_test, public testing::WithParamInterface<std::tu
         if (errors == 2u)
         {
             if (hash_type == "kmer")
-                return "The following hits were found:\nquery1: [0,1,2,3]\nquery2: [0,1,2,3]\nquery3: [1,2,3]\n";
+                return "The following hits were found:\nquery1: [0,1,2,3]\nquery2: [0,1,2,3]\nquery3: [0,1,2,3]\n";
             else
-                return "The following hits were found:\nquery1: [0]\nquery2: [1,3]\nquery3: [2]\n";
+                return "The following hits were found:\nquery1: [0,2]\nquery2: [1,3]\nquery3: [2,3]\n";
         }
 
         return "The following hits were found:\nquery1: [0]\nquery2: [1]\nquery3: [2]\n";
     }
 };
+
+TEST_F(search_test, check_index)
+{
+    for (std::string_view const hash_type : {"kmer", "minimiser"})
+    {
+        std::string_view const window_size = (hash_type == "kmer") ? "20" : "24";
+        app_test_result const result = execute_app("HIBF-hashing",
+                                                   "build",
+                                                   "--input",
+                                                   data("provided_files.txt"),
+                                                   "--output",
+                                                   hash_type,
+                                                   "--kmer 20",
+                                                   "--window",
+                                                   window_size);
+        EXPECT_SUCCESS(result);
+        EXPECT_EQ(result.err, "");
+
+        EXPECT_TRUE(string_from_file(hash_type) == string_from_file(get_index(hash_type))) << "Index files differ";
+    }
+}
 
 TEST_P(search_test, run)
 {

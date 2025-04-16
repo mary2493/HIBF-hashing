@@ -7,6 +7,7 @@
 #include <seqan3/search/views/minimiser_hash.hpp>
 
 #include "index_data.hpp"
+#include "dna4_traits.hpp"
 #include <cereal/archives/binary.hpp>
 #include <hibf/config.hpp>
 #include <hibf/hierarchical_interleaved_bloom_filter.hpp>
@@ -14,7 +15,7 @@
 
 void search(configuration const & config)
 {
-    using sequence_file_t = seqan3::sequence_file_input<seqan3::sequence_file_input_default_traits_dna>;
+    using sequence_file_t = seqan3::sequence_file_input<dna4_traits>;
 
     myindex index{};
     index.load(config.index_file);

@@ -41,8 +41,8 @@ TEST_F(api_search_test, default_config_minimiser)
     configuration config{};
     config.reads = data("reads.fasta");
     config.index_file = data("test_index_minimiser.bin");
-    config.kmer_size = 20;
-    config.window_size = 22;
+    config.kmer_size = 18;
+    config.window_size = 20;
     config.hash = hash_type::minimiser;
 
     testing::internal::CaptureStdout();
