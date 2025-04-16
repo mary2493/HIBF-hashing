@@ -1,0 +1,4 @@
+@data_dir@/bin1.fa
+@data_dir@/bin2.fa
+@data_dir@/bin3.fa
+@data_dir@/bin4.fa

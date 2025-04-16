@@ -7,6 +7,14 @@
 #include "build/build.hpp"
 #include "configuration.hpp"
 
+// This tells sharg how to map strings to enum values and vice versa.
+auto enumeration_names(hash_type)
+{
+    return std::unordered_map<std::string_view, hash_type>{{"kmer", hash_type::kmer},
+                                                           {"minimiser", hash_type::minimiser},
+                                                           {"syncmer", hash_type::syncmer}};
+}
+
 void run_build(sharg::parser & parser)
 {
     configuration config{};
@@ -23,7 +31,7 @@ void run_build(sharg::parser & parser)
         sharg::config{.short_id = 'o',
                       .long_id = "output",
                       .description = "Where to store the index.",
-                      .validator = sharg::output_file_validator{sharg::output_file_open_options::create_new}});
+                      .validator = sharg::output_file_validator{sharg::output_file_open_options::open_or_create}});
 
     parser.add_option(config.kmer_size,
                       sharg::config{.short_id = 'k',
@@ -31,9 +39,40 @@ void run_build(sharg::parser & parser)
                                     .description = "The k-mer size to use.",
                                     .validator = sharg::arithmetic_range_validator{1, 32}});
 
+    parser.add_option(config.window_size,
+                      sharg::config{.short_id = 'w',
+                                    .long_id = "window",
+                                    .description = "The window size for minimisers.",
+                                    .default_message = "k-mer size",
+                                    .validator = sharg::arithmetic_range_validator{1, 200}});
+
+    parser.add_option(config.hash,
+                      sharg::config{.short_id = 'm',
+                                    .long_id = "mode",
+                                    .description = "Hash type to use.",
+                                    .validator = sharg::value_list_validator{
+                                        (sharg::enumeration_names<hash_type> | std::views::values)}});
+
     try
     {
         parser.parse(); // Trigger command line parsing.
+        if (config.hash == hash_type::syncmer)
+        {
+            throw std::runtime_error{"Syncmer support is not yet implemented. Please use kmer or minimiser."};
+        }
+        // Make window default to kmer size if not set.
+        if (!parser.is_option_set("window"))
+        {
+            config.window_size = config.kmer_size;
+        }
+        else if (config.window_size < config.kmer_size)
+        {
+            throw std::runtime_error{"Window size must be greater than or equal to k-mer size."};
+        }
+        else // If window provided, user wants minimiser.
+        {
+            config.hash = hash_type::minimiser;
+        }
     }
     catch (sharg::parser_error const & ext) // Catch user errors.
     {

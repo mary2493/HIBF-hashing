@@ -30,25 +30,48 @@ TEST_F(cli_build_test, missing_required_argument)
     EXPECT_EQ(result.err, expected);
 }
 
-TEST_F(cli_build_test, with_arguments)
+TEST_F(cli_build_test, with_arguments_kmer)
 {
     app_test_result const result = execute_app("HIBF-hashing",
                                                "build",
                                                "--input",
                                                data("file_list_for_tests.txt"),
-                                               "--output new.index",
-                                               "--kmer 20");
+                                               "--output new_kmer.index",
+                                               "--kmer 20",
+                                               "--window 20",
+                                               "--mode kmer");
 
-    std::string const expected{"HIBF index built and saved to \"new.index\"\n"
+    std::string const expected{"HIBF index built and saved to \"new_kmer.index\"\n"
                                "Successfully processed 3 files.\n"};
 
     EXPECT_SUCCESS(result);
     EXPECT_EQ(result.out, expected);
+    EXPECT_EQ(result.err, "");
+}
+
+TEST_F(cli_build_test, with_arguments_minimiser)
+{
+    app_test_result const result = execute_app("HIBF-hashing",
+                                               "build",
+                                               "--input",
+                                               data("file_list_for_tests.txt"),
+                                               "--output new_minimiser.index",
+                                               "--kmer 20",
+                                               "--window 22",
+                                               "--mode minimiser");
+
+    std::string const expected{"HIBF index built and saved to \"new_minimiser.index\"\n"
+                               "Successfully processed 3 files.\n"};
+
+    EXPECT_SUCCESS(result);
+    EXPECT_EQ(result.out, expected);
+    EXPECT_EQ(result.err, "");
 }
 
 TEST_F(cli_build_test, missing_path)
 {
-    app_test_result const result = execute_app("HIBF-hashing", "build", "--input", data("file_list_for_tests.txt"), "-o", "");
+    app_test_result const result =
+        execute_app("HIBF-hashing", "build", "--input", data("file_list_for_tests.txt"), "-o", "");
 
     EXPECT_FAILURE(result);
     EXPECT_EQ(result.out, "");
