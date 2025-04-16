@@ -7,6 +7,14 @@
 #include "build/build.hpp"
 #include "configuration.hpp"
 
+// This tells sharg how to map strings to enum values and vice versa.
+auto enumeration_names(hash_type)
+{
+    return std::unordered_map<std::string_view, hash_type>{{"kmer", hash_type::kmer},
+                                                           {"minimiser", hash_type::minimiser},
+                                                           {"syncmer", hash_type::syncmer}};
+}
+
 void run_build(sharg::parser & parser)
 {
     configuration config{};
@@ -37,23 +45,16 @@ void run_build(sharg::parser & parser)
                                     .description = "The window size for minimisers (defaults to kmer size).",
                                     .validator = sharg::arithmetic_range_validator{1, 32}});
 
-    std::string hash_type_string;
-    parser.add_option(hash_type_string,
+    parser.add_option(config.hash,
                       sharg::config{.short_id = 'm',
                                     .long_id = "mode",
-                                    .description = "hash type to use: kmer / minimiser / syncmer",
-                                    .validator = sharg::value_list_validator{"kmer", "minimiser", "syncmer"}});
+                                    .description = "Hash type to use.",
+                                    .validator = sharg::value_list_validator{
+                                        (sharg::enumeration_names<hash_type> | std::views::values)}});
 
     try
     {
         parser.parse(); // Trigger command line parsing.
-
-        if (hash_type_string == "kmer")
-            config.hash = hash_type::kmer;
-        else if (hash_type_string == "minimiser")
-            config.hash = hash_type::minimiser;
-        else if (hash_type_string == "syncmer")
-            config.hash = hash_type::syncmer;
     }
     catch (sharg::parser_error const & ext) // Catch user errors.
     {
