@@ -29,7 +29,7 @@ void run_search(sharg::parser & parser)
                       sharg::config{.short_id = 'e',
                                     .long_id = "error",
                                     .description = "The maximum number of errors allowed.",
-                                    .validator = sharg::arithmetic_range_validator{1, 16}});
+                                    .validator = sharg::arithmetic_range_validator{0, 5}});
 
     parser.add_option(
         config.search_output,
