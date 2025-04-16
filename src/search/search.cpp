@@ -32,9 +32,9 @@ void search(configuration const & config)
 
     for (auto & record : reads_file)
     {
-        if (record.sequence().size() < index.kmer_size)
+        if (record.sequence().size() < index.window_size)
         {
-            throw std::runtime_error{"read in file is shorter than the k-mer size."};
+            throw std::runtime_error{"read in file is shorter than the k-mer/window size."};
         }
 
         auto minimiser_view = record.sequence() | hash_adaptor;
