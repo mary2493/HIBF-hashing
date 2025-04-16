@@ -23,6 +23,9 @@ void search(configuration const & config)
     auto agent = index.hibf.membership_agent();
     size_t threshold = 1u;
 
+    auto hash_adaptor =
+        seqan3::views::minimiser_hash(seqan3::ungapped{index.kmer_size}, seqan3::window_size{index.window_size});
+
     //for storing the results
     std::vector<std::string> results;
     std::string current_read{};
@@ -34,9 +37,7 @@ void search(configuration const & config)
             throw std::runtime_error{"read in file is shorter than the k-mer size."};
         }
 
-        auto minimiser_view =
-            record.sequence()
-            | seqan3::views::minimiser_hash(seqan3::ungapped{index.kmer_size}, seqan3::window_size{index.window_size});
+        auto minimiser_view = record.sequence() | hash_adaptor;
 
         auto & result = agent.membership_for(minimiser_view, threshold);
         agent.sort_results();
