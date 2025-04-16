@@ -42,8 +42,9 @@ void run_build(sharg::parser & parser)
     parser.add_option(config.window_size,
                       sharg::config{.short_id = 'w',
                                     .long_id = "window",
-                                    .description = "The window size for minimisers (defaults to kmer size).",
-                                    .validator = sharg::arithmetic_range_validator{1, 32}});
+                                    .description = "The window size for minimisers.",
+                                    .default_message = "k-mer size",
+                                    .validator = sharg::arithmetic_range_validator{1, 200}});
 
     parser.add_option(config.hash,
                       sharg::config{.short_id = 'm',
