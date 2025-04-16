@@ -22,7 +22,7 @@ TEST_F(api_search_test, default_config_kmer)
     testing::internal::CaptureStdout();
     testing::internal::CaptureStderr();
 
-    search(config);
+    EXPECT_NO_THROW(search(config));
 
     std::string const std_cout = testing::internal::GetCapturedStdout();
     std::string const std_cerr = testing::internal::GetCapturedStderr();
@@ -33,6 +33,7 @@ TEST_F(api_search_test, default_config_kmer)
                                     "read3: [1]\n"};
 
     EXPECT_EQ(expected_cout, std_cout);
+    EXPECT_EQ("", std_cerr);
 }
 
 TEST_F(api_search_test, default_config_minimiser)
@@ -47,7 +48,7 @@ TEST_F(api_search_test, default_config_minimiser)
     testing::internal::CaptureStdout();
     testing::internal::CaptureStderr();
 
-    search(config);
+    EXPECT_NO_THROW(search(config));
 
     std::string const std_cout = testing::internal::GetCapturedStdout();
     std::string const std_cerr = testing::internal::GetCapturedStderr();
@@ -58,4 +59,5 @@ TEST_F(api_search_test, default_config_minimiser)
                                     "read3: [1]\n"};
 
     EXPECT_EQ(expected_cout, std_cout);
+    EXPECT_EQ("", std_cerr);
 }

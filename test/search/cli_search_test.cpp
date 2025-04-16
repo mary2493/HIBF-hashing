@@ -60,6 +60,7 @@ TEST_F(cli_search_test, with_arguments_kmer)
 
     EXPECT_SUCCESS(result);
     EXPECT_EQ(result.out, expected);
+    EXPECT_EQ(result.err, "");
 }
 
 TEST_F(cli_search_test, with_arguments_minimiser)
@@ -81,6 +82,7 @@ TEST_F(cli_search_test, with_arguments_minimiser)
 
     EXPECT_SUCCESS(result);
     EXPECT_EQ(result.out, expected);
+    EXPECT_EQ(result.err, "");
 }
 
 TEST_F(cli_search_test, missing_path)

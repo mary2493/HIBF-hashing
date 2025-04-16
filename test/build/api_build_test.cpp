@@ -21,7 +21,7 @@ TEST_F(api_build_test, default_config_kmer)
     testing::internal::CaptureStdout();
     testing::internal::CaptureStderr();
 
-    build(config);
+    EXPECT_NO_THROW(build(config));
 
     std::string const std_cout = testing::internal::GetCapturedStdout();
     std::string const std_cerr = testing::internal::GetCapturedStderr();
@@ -30,6 +30,7 @@ TEST_F(api_build_test, default_config_kmer)
                                     "Successfully processed 3 files.\n"};
 
     EXPECT_EQ(expected_cout, std_cout);
+    EXPECT_EQ("", std_cerr);
 }
 
 TEST_F(api_build_test, default_config_minimiser)
@@ -44,7 +45,7 @@ TEST_F(api_build_test, default_config_minimiser)
     testing::internal::CaptureStdout();
     testing::internal::CaptureStderr();
 
-    build(config);
+    EXPECT_NO_THROW(build(config));
 
     std::string const std_cout = testing::internal::GetCapturedStdout();
     std::string const std_cerr = testing::internal::GetCapturedStderr();
@@ -53,4 +54,5 @@ TEST_F(api_build_test, default_config_minimiser)
                                     "Successfully processed 3 files.\n"};
 
     EXPECT_EQ(expected_cout, std_cout);
+    EXPECT_EQ("", std_cerr);
 }
