@@ -44,16 +44,16 @@ void run_build(sharg::parser & parser)
                                     .description = "hash type to use: kmer / minimiser / syncmer",
                                     .validator = sharg::value_list_validator{"kmer", "minimiser", "syncmer"}});
 
-    if (hash_type_string == "kmer")
-        config.hash = hash_type::kmer;
-    else if (hash_type_string == "minimiser")
-        config.hash = hash_type::minimiser;
-    else if (hash_type_string == "syncmer")
-        config.hash = hash_type::syncmer;
-
     try
     {
         parser.parse(); // Trigger command line parsing.
+
+        if (hash_type_string == "kmer")
+            config.hash = hash_type::kmer;
+        else if (hash_type_string == "minimiser")
+            config.hash = hash_type::minimiser;
+        else if (hash_type_string == "syncmer")
+            config.hash = hash_type::syncmer;
     }
     catch (sharg::parser_error const & ext) // Catch user errors.
     {
