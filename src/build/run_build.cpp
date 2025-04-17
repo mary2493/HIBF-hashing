@@ -46,6 +46,17 @@ void run_build(sharg::parser & parser)
                                     .default_message = "k-mer size",
                                     .validator = sharg::arithmetic_range_validator{1, 200}});
 
+    parser.add_option(config.window_size,
+                      sharg::config{.short_id = 's',
+                                    .description = "length of the smaller s-mer",
+                                    .validator = sharg::arithmetic_range_validator{1, 32}});
+
+    parser.add_option(config.window_size,
+                      sharg::config{.short_id = 't',
+                                    .description = "position within the k-mer at which the minimal s-mer must occur "
+                                                   "for the k-mer to be selected as a syncmer",
+                                    .validator = sharg::arithmetic_range_validator{1, 32}});
+
     parser.add_option(config.hash,
                       sharg::config{.short_id = 'm',
                                     .long_id = "mode",
