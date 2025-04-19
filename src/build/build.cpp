@@ -17,10 +17,11 @@
 #include <cereal/archives/binary.hpp>
 #include <hibf/config.hpp>
 #include <hibf/hierarchical_interleaved_bloom_filter.hpp>
+#include "dna4_traits.hpp"
 
 void build(configuration const & config)
 {
-    using sequence_file_t = seqan3::sequence_file_input<seqan3::sequence_file_input_default_traits_dna>;
+    using sequence_file_t = seqan3::sequence_file_input<dna4_traits>;
 
     std::ifstream file_list(config.file_list_path);
     std::string current_line;
