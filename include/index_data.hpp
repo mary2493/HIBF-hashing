@@ -26,10 +26,10 @@ public:
     ~myindex() = default;
 
     explicit myindex(uint8_t const kmer,
-                     uint8_t const window,
-                     uint8_t const syncmer_s,
-                     uint8_t const syncmer_t,
-                     seqan::hibf::hierarchical_interleaved_bloom_filter index) :
+                     seqan::hibf::hierarchical_interleaved_bloom_filter index,
+                     uint8_t const window = 0,
+                     uint8_t const syncmer_s = 0,
+                     uint8_t const syncmer_t = 0) :
         kmer_size{kmer},
         window_size{window},
         s{syncmer_s},
