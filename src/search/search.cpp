@@ -6,8 +6,9 @@
 #include <seqan3/search/search.hpp>
 #include <seqan3/search/views/minimiser_hash.hpp>
 
-#include "index_data.hpp"
+#include "contrib/syncmer.hpp"
 #include "dna4_traits.hpp"
+#include "index_data.hpp"
 #include <cereal/archives/binary.hpp>
 #include <hibf/config.hpp>
 #include <hibf/hierarchical_interleaved_bloom_filter.hpp>

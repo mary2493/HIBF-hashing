@@ -12,6 +12,7 @@
 #include <seqan3/io/sequence_file/all.hpp>
 #include <seqan3/search/views/minimiser_hash.hpp>
 
+#include "contrib/syncmer.hpp"
 #include "dna4_traits.hpp"
 #include "index_data.hpp"
 #include <cereal/archives/binary.hpp>
@@ -54,16 +55,23 @@ void build(configuration const & config)
     if (user_bin_paths.empty())
         throw std::runtime_error{"No valid files found in the file list."};
 
-    uint8_t current_hash = 0u;
-    if (config.hash == hash_type::kmer)
-        current_hash = config.kmer_size;
-    else if (config.hash == hash_type::minimiser)
-        current_hash = config.window_size;
-    else
-        throw std::runtime_error{"Syncmer support is not yet implemented. Please use kmer or minimiser."};
+    auto hash_view = [&](auto && sequence)
+    {
+        if (config.hash == hash_type::kmer)
+            return sequence
+                 | seqan3::views::minimiser_hash(seqan3::ungapped{config.kmer_size},
+                                                 seqan3::window_size{config.kmer_size});
+        else if (config.hash == hash_type::minimiser)
+            return sequence
+                 | seqan3::views::minimiser_hash(seqan3::ungapped{config.kmer_size},
+                                                 seqan3::window_size{config.window_size});
+        else if (config.hash == hash_type::syncmer)
+            return sequence
+                 | seqan3::views::syncmer({.kmer_size = config.kmer_size, .smer_size = config.s, .offset = config.t});
+        else
+            throw std::runtime_error{"Invalid hash type."};
+    };
 
-    auto minimiser_view =
-        seqan3::views::minimiser_hash(seqan3::ungapped{config.kmer_size}, seqan3::window_size{current_hash});
     auto get_user_bin_data = [&](size_t const user_bin_id, seqan::hibf::insert_iterator it)
     {
         sequence_file_t fin{user_bin_paths[user_bin_id]};
@@ -73,7 +81,7 @@ void build(configuration const & config)
                 throw std::runtime_error{"Sequence in " + user_bin_paths[user_bin_id]
                                          + " is shorter than the k-mer size."};
 
-            std::ranges::copy(record.sequence() | minimiser_view, it);
+            std::ranges::copy(hash_view(record.sequence()), it);
         }
     };
     // construct a config
@@ -86,8 +94,10 @@ void build(configuration const & config)
     // The HIBF constructor will determine a hierarchical layout for the user bins and build the filter
     seqan::hibf::hierarchical_interleaved_bloom_filter hibf{hibf_config};
 
+    uint8_t current_window = (config.hash == hash_type::kmer) ? config.kmer_size : config.window_size;
+
     //The indices can also be stored and loaded from disk by using cereal
-    myindex index{config.kmer_size, current_hash, std::move(hibf)};
+    myindex index{config.kmer_size, current_window, config.s, config.t, std::move(hibf)};
     index.store(config.index_output);
 
     std::cout << "HIBF index built and saved to " << config.index_output << "\n";

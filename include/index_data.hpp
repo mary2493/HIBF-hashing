@@ -14,6 +14,8 @@ class myindex
 public:
     uint8_t kmer_size{};
     uint8_t window_size{};
+    uint8_t s{};
+    uint8_t t{};
     seqan::hibf::hierarchical_interleaved_bloom_filter hibf{};
 
     myindex() = default;
@@ -25,9 +27,13 @@ public:
 
     explicit myindex(uint8_t const kmer,
                      uint8_t const window,
+                     uint8_t const syncmer_s,
+                     uint8_t const syncmer_t,
                      seqan::hibf::hierarchical_interleaved_bloom_filter index) :
         kmer_size{kmer},
         window_size{window},
+        s{syncmer_s},
+        t{syncmer_t},
         hibf{std::move(index)}
     {}
 
@@ -50,6 +56,8 @@ public:
     {
         archive(kmer_size);
         archive(window_size);
+        archive(s);
+        archive(t);
         archive(hibf);
     }
 };
