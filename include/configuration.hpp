@@ -24,6 +24,6 @@ struct configuration
     uint8_t error{0u};
     hash_type hash{hash_type::kmer};
     uint8_t window_size{20u};
-    uint8_t s{6u};
-    uint8_t t{3u};
+    uint8_t s{};
+    uint8_t t{};
 };
