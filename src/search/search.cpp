@@ -45,6 +45,26 @@ void search(configuration const & config)
     std::string current_read{};
     std::vector<uint64_t> hashes;
 
+    auto get_results = [&](auto & record)
+    {
+        auto & result = agent.membership_for(hashes, thresholder.get(hashes.size()));
+        agent.sort_results();
+
+        current_read.clear();
+        current_read += record.id() + ": [";
+
+        for (size_t i = 0; i < result.size(); ++i)
+        {
+            current_read += std::to_string(result[i]);
+            if (i < result.size() - 1)
+                current_read += ",";
+        }
+        current_read += "]\n";
+
+        // store the result in the vector
+        results.push_back(current_read);
+    };
+
     if (index.hash != hash_type::syncmer)
     {
         auto hash_adaptor =
@@ -60,23 +80,7 @@ void search(configuration const & config)
             auto minimiser_view = record.sequence() | hash_adaptor | std::views::common;
             hashes.clear();
             hashes.assign(minimiser_view.begin(), minimiser_view.end());
-
-            auto & result = agent.membership_for(hashes, thresholder.get(hashes.size()));
-            agent.sort_results();
-
-            current_read.clear();
-            current_read += record.id() + ": [";
-
-            for (size_t i = 0; i < result.size(); ++i)
-            {
-                current_read += std::to_string(result[i]);
-                if (i < result.size() - 1)
-                    current_read += ",";
-            }
-            current_read += "]\n";
-
-            // store the result in the vector
-            results.push_back(current_read);
+            get_results(record);
         }
     }
 
@@ -91,27 +95,10 @@ void search(configuration const & config)
             {
                 throw std::runtime_error{"read in file is shorter than the k-mer size."};
             }
-
             auto syncmer_view = record.sequence() | hash_adaptor | std::views::common;
             hashes.clear();
             hashes.assign(syncmer_view.begin(), syncmer_view.end());
-
-            auto & result = agent.membership_for(hashes, thresholder.get(hashes.size()));
-            agent.sort_results();
-
-            current_read.clear();
-            current_read += record.id() + ": [";
-
-            for (size_t i = 0; i < result.size(); ++i)
-            {
-                current_read += std::to_string(result[i]);
-                if (i < result.size() - 1)
-                    current_read += ",";
-            }
-            current_read += "]\n";
-
-            // store the result in the vector
-            results.push_back(current_read);
+            get_results(record);
         }
     }
 
