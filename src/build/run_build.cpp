@@ -67,10 +67,7 @@ void run_build(sharg::parser & parser)
     try
     {
         parser.parse(); // Trigger command line parsing.
-        if (config.hash == hash_type::syncmer)
-        {
-            throw std::runtime_error{"Syncmer support is not yet implemented. Please use kmer or minimiser."};
-        }
+
         // Make window default to kmer size if not set.
         if (!parser.is_option_set("window"))
         {

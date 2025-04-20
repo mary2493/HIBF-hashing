@@ -40,41 +40,79 @@ void search(configuration const & config)
 
     auto agent = index.hibf.membership_agent();
 
-    auto hash_adaptor =
-        seqan3::views::minimiser_hash(seqan3::ungapped{index.kmer_size}, seqan3::window_size{index.window_size});
-
     //for storing the results
     std::vector<std::string> results;
     std::string current_read{};
-    std::vector<uint64_t> minimiser;
+    std::vector<uint64_t> hashes;
 
-    for (auto & record : reads_file)
+    if (config.hash != hash_type::syncmer)
     {
-        if (record.sequence().size() < index.window_size)
+        auto hash_adaptor =
+            seqan3::views::minimiser_hash(seqan3::ungapped{index.kmer_size}, seqan3::window_size{index.window_size});
+
+        for (auto & record : reads_file)
         {
-            throw std::runtime_error{"read in file is shorter than the k-mer/window size."};
+            if (record.sequence().size() < index.window_size)
+            {
+                throw std::runtime_error{"read in file is shorter than the k-mer/window size."};
+            }
+
+            auto minimiser_view = record.sequence() | hash_adaptor | std::views::common;
+            hashes.clear();
+            hashes.assign(minimiser_view.begin(), minimiser_view.end());
+
+            auto & result = agent.membership_for(hashes, thresholder.get(hashes.size()));
+            agent.sort_results();
+
+            current_read.clear();
+            current_read += record.id() + ": [";
+
+            for (size_t i = 0; i < result.size(); ++i)
+            {
+                current_read += std::to_string(result[i]);
+                if (i < result.size() - 1)
+                    current_read += ",";
+            }
+            current_read += "]\n";
+
+            // store the result in the vector
+            results.push_back(current_read);
         }
+    }
 
-        auto minimiser_view = record.sequence() | hash_adaptor | std::views::common;
-        minimiser.clear();
-        minimiser.assign(minimiser_view.begin(), minimiser_view.end());
+    else
+    {
+        auto hash_adaptor =
+            seqan3::views::syncmer({.kmer_size = config.kmer_size, .smer_size = config.s, .offset = config.t});
 
-        auto & result = agent.membership_for(minimiser, thresholder.get(minimiser.size()));
-        agent.sort_results();
-
-        current_read.clear();
-        current_read += record.id() + ": [";
-
-        for (size_t i = 0; i < result.size(); ++i)
+        for (auto & record : reads_file)
         {
-            current_read += std::to_string(result[i]);
-            if (i < result.size() - 1)
-                current_read += ",";
-        }
-        current_read += "]\n";
+            if (record.sequence().size() < index.window_size)
+            {
+                throw std::runtime_error{"read in file is shorter than the k-mer/window size."};
+            }
 
-        // store the result in the vector
-        results.push_back(current_read);
+            auto syncmer_view = record.sequence() | hash_adaptor | std::views::common;
+            hashes.clear();
+            hashes.assign(syncmer_view.begin(), syncmer_view.end());
+
+            auto & result = agent.membership_for(hashes, thresholder.get(hashes.size()));
+            agent.sort_results();
+
+            current_read.clear();
+            current_read += record.id() + ": [";
+
+            for (size_t i = 0; i < result.size(); ++i)
+            {
+                current_read += std::to_string(result[i]);
+                if (i < result.size() - 1)
+                    current_read += ",";
+            }
+            current_read += "]\n";
+
+            // store the result in the vector
+            results.push_back(current_read);
+        }
     }
 
     std::cout << "The following hits were found:\n";
