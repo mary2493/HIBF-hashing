@@ -45,7 +45,7 @@ void search(configuration const & config)
     std::string current_read{};
     std::vector<uint64_t> hashes;
 
-    if (config.hash != hash_type::syncmer)
+    if (config.s == 0 && config.t == 0)
     {
         auto hash_adaptor =
             seqan3::views::minimiser_hash(seqan3::ungapped{index.kmer_size}, seqan3::window_size{index.window_size});
@@ -87,9 +87,9 @@ void search(configuration const & config)
 
         for (auto & record : reads_file)
         {
-            if (record.sequence().size() < index.window_size)
+            if (record.sequence().size() < index.kmer_size)
             {
-                throw std::runtime_error{"read in file is shorter than the k-mer/window size."};
+                throw std::runtime_error{"read in file is shorter than the k-mer size."};
             }
 
             auto syncmer_view = record.sequence() | hash_adaptor | std::views::common;
