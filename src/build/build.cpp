@@ -116,7 +116,7 @@ void build(configuration const & config)
     seqan::hibf::hierarchical_interleaved_bloom_filter hibf{hibf_config};
 
     //The indices can also be stored and loaded from disk by using cereal
-    myindex index{config.kmer_size, std::move(hibf), current_hash, sync_s, sync_t};
+    myindex index{config.kmer_size, std::move(hibf), current_hash, sync_s, sync_t, config.hash};
     index.store(config.index_output);
 
     std::cout << "HIBF index built and saved to " << config.index_output << "\n";

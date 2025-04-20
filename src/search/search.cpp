@@ -45,7 +45,7 @@ void search(configuration const & config)
     std::string current_read{};
     std::vector<uint64_t> hashes;
 
-    if (config.s == 0 && config.t == 0)
+    if (index.hash != hash_type::syncmer)
     {
         auto hash_adaptor =
             seqan3::views::minimiser_hash(seqan3::ungapped{index.kmer_size}, seqan3::window_size{index.window_size});
@@ -83,7 +83,7 @@ void search(configuration const & config)
     else
     {
         auto hash_adaptor =
-            seqan3::views::syncmer({.kmer_size = config.kmer_size, .smer_size = config.s, .offset = config.t});
+            seqan3::views::syncmer({.kmer_size = index.kmer_size, .smer_size = index.s, .offset = index.t});
 
         for (auto & record : reads_file)
         {

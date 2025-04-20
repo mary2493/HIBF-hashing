@@ -16,6 +16,7 @@ public:
     uint8_t window_size{};
     uint8_t s{};
     uint8_t t{};
+    hash_type hash{};
     seqan::hibf::hierarchical_interleaved_bloom_filter hibf{};
 
     myindex() = default;
@@ -29,11 +30,13 @@ public:
                      seqan::hibf::hierarchical_interleaved_bloom_filter index,
                      uint8_t const window = 0,
                      uint8_t const syncmer_s = 0,
-                     uint8_t const syncmer_t = 0) :
+                     uint8_t const syncmer_t = 0,
+                     hash_type const hash_type = hash_type::kmer) :
         kmer_size{kmer},
         window_size{window},
         s{syncmer_s},
         t{syncmer_t},
+        hash{hash_type},
         hibf{std::move(index)}
     {}
 
@@ -58,6 +61,7 @@ public:
         archive(window_size);
         archive(s);
         archive(t);
+        archive(hash);
         archive(hibf);
     }
 };
