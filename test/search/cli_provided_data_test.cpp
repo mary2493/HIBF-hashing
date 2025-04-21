@@ -14,7 +14,7 @@ struct search_test : public app_test, public testing::WithParamInterface<std::tu
         else if (hash_type == "minimiser")
             return data("20_24_version2.index");
         else
-            throw std::runtime_error{"Unknown hash type"};
+            return data("15_11_2.index");
     }
 
     static std::string_view get_expected_hits(std::string_view const hash_type, uint16_t const errors)
@@ -50,6 +50,24 @@ TEST_F(search_test, check_index)
 
         EXPECT_TRUE(string_from_file(hash_type) == string_from_file(get_index(hash_type))) << "Index files differ";
     }
+}
+
+TEST_F(search_test, check_index_syncmer)
+{
+        app_test_result const result = execute_app("HIBF-hashing",
+                                                   "build",
+                                                   "--input",
+                                                   data("provided_files.txt"),
+                                                   "--output syncmer",
+                                                   "--mode syncmer",
+                                                   "--kmer 15",
+                                                   "--syncmer_s 11",
+                                                   "--syncmer_t 2");
+        EXPECT_SUCCESS(result);
+        EXPECT_EQ(result.err, "");
+
+        EXPECT_TRUE(string_from_file("syncmer") == string_from_file(get_index("syncmer"))) << "Index files differ";
+    
 }
 
 TEST_P(search_test, run)

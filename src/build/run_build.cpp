@@ -56,7 +56,7 @@ void run_build(sharg::parser & parser)
                       sharg::config{.short_id = 't',
                                     .long_id = "syncmer_t",
                                     .description = "position within the k-mer at which the minimal s-mer must occur.",
-                                    .validator = sharg::arithmetic_range_validator{1, 32}});
+                                    .validator = sharg::arithmetic_range_validator{0, 32}});
 
     parser.add_option(config.hash,
                       sharg::config{.short_id = 'm',
