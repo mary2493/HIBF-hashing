@@ -1,0 +1,4 @@
+/home/mary/develop/HIBF-hashing/test/data/provided/bin1.fa
+/home/mary/develop/HIBF-hashing/test/data/provided/bin2.fa
+/home/mary/develop/HIBF-hashing/test/data/provided/bin3.fa
+/home/mary/develop/HIBF-hashing/test/data/provided/bin4.fa

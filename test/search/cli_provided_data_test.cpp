@@ -10,9 +10,9 @@ struct search_test : public app_test, public testing::WithParamInterface<std::tu
     static std::filesystem::path get_index(std::string_view const hash_type)
     {
         if (hash_type == "kmer")
-            return data("20_20.index");
+            return data("20_20_version2a.index");
         else if (hash_type == "minimiser")
-            return data("20_24.index");
+            return data("20_24_version2.index");
         else
             throw std::runtime_error{"Unknown hash type"};
     }
