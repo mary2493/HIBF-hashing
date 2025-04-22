@@ -1,0 +1,37 @@
+Tag,Step,Time (s),Output (first 100 chars)
+kmer_provided_list_files,build,0.04,"HIBF index built and saved to ""/home/mary/develop/HIBF-hashing/test/data/compare/test_index_kmer_provided_list_files.bin""
+Successfully processed 4 files."
+kmer_provided_list_files,search,0.01,"The following hits were found:
+query1: [0]
+query2: [1]
+query3: [2]"
+kmer_file_list,build,0.02,"HIBF index built and saved to ""/home/mary/develop/HIBF-hashing/test/data/compare/test_index_kmer_file_list.bin""
+Successfully processed 3 files."
+kmer_file_list,search,0.01,"The following hits were found:
+read1: [1,2]
+read2: []
+read3: [1]"
+minimiser_provided_list_files,build,0.02,"HIBF index built and saved to ""/home/mary/develop/HIBF-hashing/test/data/compare/test_index_minimiser_provided_list_files.bin""
+Successfully processed 4 files."
+minimiser_provided_list_files,search,0.01,"The following hits were found:
+query1: [0]
+query2: [1]
+query3: [2]"
+minimiser_file_list,build,0.01,"HIBF index built and saved to ""/home/mary/develop/HIBF-hashing/test/data/compare/test_index_minimiser_file_list.bin""
+Successfully processed 3 files."
+minimiser_file_list,search,0.01,"The following hits were found:
+read1: [1,2]
+read2: []
+read3: [1]"
+syncmer_provided_list_files,build,0.01,"HIBF index built and saved to ""/home/mary/develop/HIBF-hashing/test/data/compare/test_index_syncmer_provided_list_files.bin""
+Successfully processed 4 files."
+syncmer_provided_list_files,search,0.01,"The following hits were found:
+query1: [0]
+query2: [1]
+query3: [2]"
+syncmer_file_list,build,0.01,"HIBF index built and saved to ""/home/mary/develop/HIBF-hashing/test/data/compare/test_index_syncmer_file_list.bin""
+Successfully processed 3 files."
+syncmer_file_list,search,0.01,"The following hits were found:
+read1: [1,2]
+read2: [0,1,2]
+read3: [1]"
