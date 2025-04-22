@@ -27,6 +27,8 @@ void search(configuration const & config)
     myindex index{};
     index.load(config.index_file);
 
+
+    
     if (index.hash == hash_type::syncmer)
     {
         if (config.error > 0)

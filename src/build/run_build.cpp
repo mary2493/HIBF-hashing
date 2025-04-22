@@ -69,6 +69,16 @@ void run_build(sharg::parser & parser)
     {
         parser.parse(); // Trigger command line parsing.
 
+        if (config.s >= config.kmer_size)
+        {
+            throw std::invalid_argument{"Syncmer s-mer size must be smaller than k-mer size."};
+        }
+
+        if (config.t > config.kmer_size - config.s)
+        {
+            throw std::invalid_argument{"Syncmer offset t is out of bounds."};
+        }
+
         // Make window default to kmer size if not set.
         if (!parser.is_option_set("window"))
         {
