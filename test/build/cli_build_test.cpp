@@ -35,14 +35,14 @@ TEST_F(cli_build_test, with_arguments_kmer)
     app_test_result const result = execute_app("HIBF-hashing",
                                                "build",
                                                "--input",
-                                               data("file_list_for_tests.txt"),
+                                               data("provided_files.txt"),
                                                "--output new_kmer.index",
                                                "--kmer 20",
                                                "--window 20",
                                                "--mode kmer");
 
     std::string const expected{"HIBF index built and saved to \"new_kmer.index\"\n"
-                               "Successfully processed 3 files.\n"};
+                               "Successfully processed 4 files.\n"};
 
     EXPECT_SUCCESS(result);
     EXPECT_EQ(result.out, expected);
@@ -54,14 +54,34 @@ TEST_F(cli_build_test, with_arguments_minimiser)
     app_test_result const result = execute_app("HIBF-hashing",
                                                "build",
                                                "--input",
-                                               data("file_list_for_tests.txt"),
+                                               data("provided_files.txt"),
                                                "--output new_minimiser.index",
-                                               "--kmer 20",
-                                               "--window 22",
+                                               "--kmer 18",
+                                               "--window 20",
                                                "--mode minimiser");
 
     std::string const expected{"HIBF index built and saved to \"new_minimiser.index\"\n"
-                               "Successfully processed 3 files.\n"};
+                               "Successfully processed 4 files.\n"};
+
+    EXPECT_SUCCESS(result);
+    EXPECT_EQ(result.out, expected);
+    EXPECT_EQ(result.err, "");
+}
+
+TEST_F(cli_build_test, with_arguments_syncmer)
+{
+    app_test_result const result = execute_app("HIBF-hashing",
+                                               "build",
+                                               "--input",
+                                               data("provided_files.txt"),
+                                               "--output new_syncmer.index",
+                                               "--kmer 15",
+                                               "--syncmer_s 11",
+                                               "--syncmer_t 2",
+                                               "--mode syncmer");
+
+    std::string const expected{"HIBF index built and saved to \"new_syncmer.index\"\n"
+                               "Successfully processed 4 files.\n"};
 
     EXPECT_SUCCESS(result);
     EXPECT_EQ(result.out, expected);
@@ -71,7 +91,7 @@ TEST_F(cli_build_test, with_arguments_minimiser)
 TEST_F(cli_build_test, missing_path)
 {
     app_test_result const result =
-        execute_app("HIBF-hashing", "build", "--input", data("file_list_for_tests.txt"), "-o", "");
+        execute_app("HIBF-hashing", "build", "--input", data("provided_files.txt"), "-o", "");
 
     EXPECT_FAILURE(result);
     EXPECT_EQ(result.out, "");
@@ -91,7 +111,7 @@ TEST_F(cli_build_test, invalid_input_path)
 TEST_F(cli_build_test, invalid_output_path)
 {
     app_test_result const result =
-        execute_app("HIBF-hashing", "build", "--input", data("file_list_for_tests.txt"), "--output does/not/exist");
+        execute_app("HIBF-hashing", "build", "--input", data("provided_files.txt"), "--output does/not/exist");
 
     EXPECT_FAILURE(result);
     EXPECT_EQ(result.out, "");
