@@ -4,96 +4,131 @@
 
 import subprocess
 import time
-import csv
 from pathlib import Path
 
-# === Pfade ===
+# this script is used to compare the performance of different hash types
+# Setup directories and paths
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "test" / "data"
 HIBF_BINARY = BASE_DIR / "build" / "HIBF-hashing"
 COMPARE_DIR = DATA_DIR / "compare"
-CSV_FILE = COMPARE_DIR / "hibf_benchmark_results.csv"
+TXT_FILE = COMPARE_DIR / "hibf_benchmark_results.txt"
 
-COMPARE_DIR.mkdir(parents=True, exist_ok=True)  # Ordner sicherstellen
-
-# === Experimente ===
+# Experiments for building and searching without errors
 experiments = [
     ("kmer",      DATA_DIR / "provided_list_files.txt", DATA_DIR / "provided/query.fq",     ["--kmer", "20"]),
     ("kmer",      DATA_DIR / "file_list.txt",           DATA_DIR / "reads.fasta",           ["--kmer", "20"]),
-    ("minimiser", DATA_DIR / "provided_list_files.txt", DATA_DIR / "provided/query.fq",     ["--kmer", "18", "--window", "20"]),
+    ("minimiser", DATA_DIR / "provided_list_files.txt", DATA_DIR / "provided/query.fq",     ["--kmer", "20", "--window", "24"]),
     ("minimiser", DATA_DIR / "file_list.txt",           DATA_DIR / "reads.fasta",           ["--kmer", "18", "--window", "20"]),
     ("syncmer",   DATA_DIR / "provided_list_files.txt", DATA_DIR / "provided/query.fq",     ["--kmer", "15", "--syncmer_s", "11", "--syncmer_t", "2"]),
     ("syncmer",   DATA_DIR / "file_list.txt",           DATA_DIR / "reads.fasta",           ["--kmer", "15", "--syncmer_s", "11", "--syncmer_t", "2"]),
 ]
 
-# === Ergebnisse gruppiert speichern ===
-grouped_results = {}
-
-# === Helper Function ===
-def run_and_measure(cmd, description, method, step, file_key):
-    cmd_str = [str(part) for part in cmd]
+def run_and_measure(cmd, description):
     print(f"\nRunning: {description}")
-    print(f" Command: {' '.join(cmd_str)}")
-
+    print(f" Command: {' '.join(str(c) for c in cmd)}")
     start = time.time()
-    result = subprocess.run(cmd_str, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True)
     end = time.time()
+
+    success = result.returncode == 0
     elapsed = round(end - start, 2)
+    output = result.stdout.strip() if success else f"ERROR: {result.stderr.strip()}"
+    print("Success" if success else "Failed")
+    return elapsed, output
 
-    output = result.stdout.strip() if result.returncode == 0 else f"ERROR: {result.stderr.strip()}"
+def clean_hits(text):
+    return "\n".join(line for line in text.splitlines() if not line.strip().startswith("The following hits were found:"))
 
-    # Initialisiere Gruppe bei Bedarf
-    if file_key not in grouped_results:
-        grouped_results[file_key] = {
-            "files": file_key,
-            "kmer": {}, "minimiser": {}, "syncmer": {}
-        }
-
-    # Speichere Ergebnis
-    grouped_results[file_key][method][step] = {
-        "time": elapsed,
-        "output": output
-    }
-
-    print(f" Time: {elapsed:.2f} seconds")
-    print(" Output:", output)
-
-
-# === Main Execution ===
 if __name__ == "__main__":
-    print("Benchmarking HIBF-hashing: Comparing kmer, minimiser, and syncmer")
+    grouped_results = {}
 
+    # Build and normal search (error=0)
     for hash_type, file_list, reads_file, build_args in experiments:
+        key = (file_list.name, reads_file.name)
+        if key not in grouped_results:
+            grouped_results[key] = {}
+
         tag = f"{hash_type}_{file_list.stem}"
-        file_key = (str(file_list), str(reads_file))
         index_file = COMPARE_DIR / f"test_index_{tag}.bin"
         search_output = COMPARE_DIR / f"search_{tag}.txt"
 
-        # Build
+        # build
         build_cmd = [HIBF_BINARY, "build", "-i", file_list, "-o", index_file, "-m", hash_type] + build_args
-        run_and_measure(build_cmd, f"Build for {hash_type} using {file_list.name}", hash_type, "build", file_key)
+        build_time, _ = run_and_measure(build_cmd, f"Build for {hash_type} using {file_list.name}")
 
-        # Search
+        # search
         search_cmd = [HIBF_BINARY, "search", "-i", index_file, "-r", reads_file, "-o", search_output]
-        run_and_measure(search_cmd, f"Search for {hash_type} using {file_list.name}", hash_type, "search", file_key)
+        search_time, search_output_text = run_and_measure(search_cmd, f"Search for {hash_type} using {file_list.name}")
 
-    # === Ausgabe als CSV-Datei ===
-    with open(CSV_FILE, "w", newline="") as f:
-        writer = csv.writer(f, delimiter=";")
+        grouped_results[key][hash_type] = {
+            "build_time": build_time,
+            "search_time": search_time,
+            "hits": "(error=0)\n" + clean_hits(search_output_text)
+        }
 
-        for file_key, data in grouped_results.items():
-            seq_file, read_file = file_key
-            writer.writerow(["Data name seq:", seq_file])
-            writer.writerow(["Data name reads:", read_file])
+    # Only search with --error 2 for kmer/minimiser (no new builds)
+    extra_error_experiments = [
+        ("kmer",      DATA_DIR / "provided_list_files.txt", DATA_DIR / "provided/query.fq",     ["--kmer", "20"]),
+        ("minimiser", DATA_DIR / "provided_list_files.txt", DATA_DIR / "provided/query.fq",     ["--kmer", "20", "--window", "24"]),
+    ]
 
-            for method in ["kmer", "minimiser", "syncmer"]:
-                writer.writerow([f"{method}:"])
-                build = data[method].get("build", {})
-                search = data[method].get("search", {})
+    for hash_type, file_list, reads_file, _ in extra_error_experiments:
+        key = (file_list.name, reads_file.name)
+        tag = f"{hash_type}_{file_list.stem}_error2"
+        index_file = COMPARE_DIR / f"test_index_{hash_type}_{file_list.stem}.bin"
+        search_output = COMPARE_DIR / f"search_{tag}.txt"
 
-                writer.writerow(["Build:", build.get("time", "N/A")])
-                writer.writerow(["Search:", search.get("time", "N/A")])
-                writer.writerow(["The following hits were found:"])
-                writer.writerow([search.get("output", "")])
+        search_cmd = [HIBF_BINARY, "search", "-i", index_file, "-r", reads_file, "-o", search_output, "--error", "2"]
+        search_time, search_output_text = run_and_measure(search_cmd, f"Search for {hash_type} using {file_list.name} with error=2")
 
-    print(f"\n Alle Ergebnisse gespeichert unter: {CSV_FILE}")
+        grouped_results[key][f"{hash_type}_error2"] = {
+            "build_time": "-",
+            "search_time": search_time,
+            "hits": "(error=2)\n" + clean_hits(search_output_text)
+        }
+
+    # Save results to file
+    with open(TXT_FILE, "w") as f:
+        for (file_list_name, reads_name), data in grouped_results.items():
+            f.write(f"Data name of seq: {file_list_name}\n")
+            f.write(f"Data name of reads: {reads_name}\n\n")
+
+            headers = [
+                "kmer (err=0)",
+                "minimiser (err=0)",
+                "syncmer (err=0)",
+                "kmer (err=2)",
+                "minimiser (err=2)"
+            ]
+
+            f.write("".ljust(25))
+            f.write("\t".join(h.ljust(25) for h in headers) + "\n")
+            f.write("Time\n")
+            
+            for kind in ["build_time", "search_time"]:
+                label = "B" if kind == "build_time" else "S"
+                times = [f"{label}:{data[ht][kind]:.2f}s" if ht in data and data[ht][kind] != "-" else "-" for ht in ["kmer", "minimiser", "syncmer", "kmer_error2", "minimiser_error2"]]
+                f.write("".ljust(25))
+                f.write("\t".join(t.ljust(25) for t in times) + "\n")
+
+            f.write("\n" + "Hits".ljust(25) + "\n")
+
+            hits_by_line = [[] for _ in range(5)]
+            max_lines = 0
+
+            for i, ht in enumerate(["kmer", "minimiser", "syncmer", "kmer_error2", "minimiser_error2"]):
+                if ht in data:
+                    lines = data[ht]["hits"].splitlines()
+                    hits_by_line[i] = lines
+                    max_lines = max(max_lines, len(lines))
+
+            for i in range(max_lines):
+                row = []
+                for lines in hits_by_line:
+                    row.append(lines[i] if i < len(lines) else "")
+                f.write("".ljust(25))
+                f.write("\t".join(cell.ljust(25) for cell in row) + "\n")
+
+            f.write("\n" + "="*120 + "\n\n")
+    print(f"\nResults were saved to: {TXT_FILE}")

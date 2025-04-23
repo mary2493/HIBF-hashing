@@ -41,8 +41,8 @@ TEST_F(api_search_test, default_config_minimiser)
     configuration config{};
     config.reads = data("query.fq");
     config.index_file = data("20_24_version2.index");
-    config.kmer_size = 18;
-    config.window_size = 20;
+    config.kmer_size = 20;
+    config.window_size = 24;
     config.hash = hash_type::minimiser;
 
     testing::internal::CaptureStdout();

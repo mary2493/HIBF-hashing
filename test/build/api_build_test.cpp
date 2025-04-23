@@ -38,8 +38,8 @@ TEST_F(api_build_test, default_config_minimiser)
     configuration config{};
     config.file_list_path = data("provided_files.txt");
     config.index_output = "new_minimiser.index";
-    config.kmer_size = 18;
-    config.window_size = 20;
+    config.kmer_size = 20;
+    config.window_size = 24;
     config.hash = hash_type::minimiser;
 
     testing::internal::CaptureStdout();

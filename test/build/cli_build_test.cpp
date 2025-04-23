@@ -56,8 +56,8 @@ TEST_F(cli_build_test, with_arguments_minimiser)
                                                "--input",
                                                data("provided_files.txt"),
                                                "--output new_minimiser.index",
-                                               "--kmer 18",
-                                               "--window 20",
+                                               "--kmer 20",
+                                               "--window 24",
                                                "--mode minimiser");
 
     std::string const expected{"HIBF index built and saved to \"new_minimiser.index\"\n"
