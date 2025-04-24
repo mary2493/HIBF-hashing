@@ -23,15 +23,55 @@
 #include <hibf/config.hpp>
 #include <hibf/hierarchical_interleaved_bloom_filter.hpp>
 
-void build(configuration const & config)
+template <hash_type hash>
+std::function<void(size_t, seqan::hibf::insert_iterator &&)>
+get_input_fn_impl(configuration const & config, std::vector<std::string> const & user_bin_paths)
 {
     using sequence_file_t = seqan3::sequence_file_input<dna4_traits>;
 
-    std::ifstream file_list(config.file_list_path);
-    std::string current_line;
+    auto view = [&]()
+    {
+        if constexpr (hash == hash_type::minimiser)
+        {
+            return seqan3::views::minimiser_hash(seqan3::ungapped{config.kmer_size},
+                                                 seqan3::window_size{config.window_size});
+        }
+        else
+        {
+            static_assert(hash == hash_type::syncmer);
+            return seqan3::views::syncmer({.kmer_size = config.kmer_size, .smer_size = config.s, .offset = config.t});
+        }
+    }();
 
+    return [&, view](size_t const user_bin_id, seqan::hibf::insert_iterator it)
+    {
+        sequence_file_t fin{user_bin_paths[user_bin_id]};
+        for (auto & record : fin)
+        {
+            std::ranges::copy(record.sequence() | view, it);
+        }
+    };
+}
+
+std::function<void(size_t, seqan::hibf::insert_iterator &&)>
+get_input_fn(configuration const & config, std::vector<std::string> const & user_bin_paths)
+{
+    switch (config.hash)
+    {
+    case hash_type::minimiser:
+        return get_input_fn_impl<hash_type::minimiser>(config, user_bin_paths);
+    case hash_type::syncmer:
+        return get_input_fn_impl<hash_type::syncmer>(config, user_bin_paths);
+    default:
+        throw std::runtime_error{"Invalid hash type."};
+    }
+}
+
+std::vector<std::string> parse_user_bins(std::filesystem::path const & file)
+{
     std::vector<std::string> user_bin_paths;
-
+    std::ifstream file_list{file};
+    std::string current_line;
     sharg::input_file_validator fasta_validator{{"fasta", "fa", "fna"}};
 
     //Each FASTA file is opened, and the k-mers are extracted from it.
@@ -59,53 +99,14 @@ void build(configuration const & config)
     if (user_bin_paths.empty())
         throw std::runtime_error{"No valid files found in the file list."};
 
-    auto input_fn = [&]()
-    {
-        std::function<void(size_t, seqan::hibf::insert_iterator &&)> result;
-        if (config.hash != hash_type::syncmer)
-        {
-            result = [&](size_t const user_bin_id, seqan::hibf::insert_iterator it)
-            {
-                auto minimiser_view = seqan3::views::minimiser_hash(seqan3::ungapped{config.kmer_size},
-                                                                    seqan3::window_size{config.window_size});
+    return user_bin_paths;
+}
 
-                sequence_file_t fin{user_bin_paths[user_bin_id]};
-                for (auto & record : fin)
-                {
-                    if (record.sequence().size() < config.window_size)
-                        throw std::runtime_error{"Sequence in " + user_bin_paths[user_bin_id]
-                                                 + " is shorter than the window/k-mer size."};
+void build(configuration const & config)
+{
+    std::vector<std::string> const user_bin_paths = parse_user_bins(config.file_list_path);
 
-                    std::ranges::copy(record.sequence() | minimiser_view, it);
-                }
-            };
-        }
-        else
-        {
-            result = [&](size_t const user_bin_id, seqan::hibf::insert_iterator it)
-            {
-                auto syncmer_view =
-                    seqan3::views::syncmer({.kmer_size = config.kmer_size, .smer_size = config.s, .offset = config.t});
-
-                sequence_file_t fin{user_bin_paths[user_bin_id]};
-                for (auto & record : fin)
-                {
-
-                    if (record.sequence().size() < config.kmer_size)
-                        throw std::runtime_error{"Sequence in " + user_bin_paths[user_bin_id]
-                                                 + " is shorter than the k-mer size."};
-
-                    std::ranges::copy(record.sequence() | syncmer_view, it);
-
-                    /*if (std::ranges::empty((record.sequence()
-                                        | seqan3::views::syncmer(
-                                            {.kmer_size = config.kmer_size, .smer_size = sync_s, .offset = sync_t}))))
-                    throw std::runtime_error{"No syncmers were generated. Check your parameters k, s, t."};*/
-                }
-            };
-        }
-        return result;
-    }();
+    auto input_fn = get_input_fn(config, user_bin_paths);
 
     seqan::hibf::config hibf_config{.input_fn = input_fn,                         // required
                                     .number_of_user_bins = user_bin_paths.size(), // required
