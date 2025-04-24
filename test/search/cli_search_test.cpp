@@ -23,7 +23,7 @@ TEST_F(cli_search_test, no_options)
 TEST_F(cli_search_test, missing_required_argument_index)
 {
     app_test_result const result = execute_app("HIBF-hashing", "search", "--reads", data("query.fq"));
-    std::string_view const expected{"Parsing error. Option -i/--index is required but not set.\n"};
+    std::string_view const expected{"[Error] Option -i/--index is required but not set.\n"};
 
     EXPECT_FAILURE(result);
     EXPECT_EQ(result.out, "");
@@ -34,7 +34,7 @@ TEST_F(cli_search_test, missing_required_argument_reads)
 {
     app_test_result const result =
         execute_app("HIBF-hashing", "search", "index", data("kmer.index"), "--output result.out");
-    std::string_view const expected{"Parsing error. Option -i/--index is required but not set.\n"};
+    std::string_view const expected{"[Error] Option -i/--index is required but not set.\n"};
 
     EXPECT_FAILURE(result);
     EXPECT_EQ(result.out, "");
@@ -114,7 +114,7 @@ TEST_F(cli_search_test, missing_path)
 
     EXPECT_FAILURE(result);
     EXPECT_EQ(result.out, "");
-    EXPECT_EQ(result.err, "Parsing error. Missing value for option -o\n");
+    EXPECT_EQ(result.err, "[Error] Missing value for option -o\n");
 }
 
 TEST_F(cli_search_test, invalid_input_path)
@@ -124,7 +124,7 @@ TEST_F(cli_search_test, invalid_input_path)
     EXPECT_FAILURE(result);
     EXPECT_EQ(result.out, "");
     EXPECT_EQ(result.err,
-              "Parsing error. Validation failed for option -i/--index: The file \"does/not/exist\" does not exist!\n");
+              "[Error] Validation failed for option -i/--index: The file \"does/not/exist\" does not exist!\n");
 }
 
 TEST_F(cli_search_test, invalid_output_path)
@@ -139,6 +139,5 @@ TEST_F(cli_search_test, invalid_output_path)
 
     EXPECT_FAILURE(result);
     EXPECT_EQ(result.out, "");
-    EXPECT_EQ(result.err,
-              "Parsing error. Validation failed for option -o/--output: Cannot write \"does/not/exist\"!\n");
+    EXPECT_EQ(result.err, "[Error] Validation failed for option -o/--output: Cannot write \"does/not/exist\"!\n");
 }
