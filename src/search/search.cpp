@@ -6,8 +6,6 @@
 
 #include <iostream>
 
-#include <sharg/all.hpp>
-
 #include <seqan3/io/sequence_file/all.hpp>
 #include <seqan3/search/search.hpp>
 #include <seqan3/search/views/minimiser_hash.hpp>
@@ -27,12 +25,10 @@ void search(configuration const & config)
     myindex index{};
     index.load(config.index_file);
 
-
-    
     if (index.hash == hash_type::syncmer)
     {
         if (config.error > 0)
-            throw sharg::parser_error{"Syncmer does not support errors."};
+            throw std::runtime_error{"Syncmer does not support errors."};
     }
 
     threshold::threshold const thresholder = [&]() -> threshold::threshold
