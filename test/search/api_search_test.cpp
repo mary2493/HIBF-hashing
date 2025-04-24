@@ -17,7 +17,8 @@ TEST_F(api_search_test, default_config_kmer)
     config.reads = data("query.fq");
     config.index_file = data("20_20_version2.index");
     config.kmer_size = 20;
-    config.hash = hash_type::kmer;
+    config.window_size = 20;
+    config.hash = hash_type::minimiser;
 
     testing::internal::CaptureStdout();
     testing::internal::CaptureStderr();
@@ -68,7 +69,6 @@ TEST_F(api_search_test, default_config_syncmer)
     config.reads = data("query.fq");
     config.index_file = data("15_11_2.index");
     config.kmer_size = 15;
-    config.window_size = 20u;
     config.s = 11;
     config.t = 2;
     config.hash = hash_type::syncmer;
