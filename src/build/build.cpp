@@ -64,11 +64,11 @@ void build(configuration const & config)
         std::function<void(size_t, seqan::hibf::insert_iterator &&)> result;
         if (config.hash != hash_type::syncmer)
         {
-            auto minimiser_view = seqan3::views::minimiser_hash(seqan3::ungapped{config.kmer_size},
-                                                                seqan3::window_size{config.window_size});
-
             result = [&](size_t const user_bin_id, seqan::hibf::insert_iterator it)
             {
+                auto minimiser_view = seqan3::views::minimiser_hash(seqan3::ungapped{config.kmer_size},
+                                                                    seqan3::window_size{config.window_size});
+
                 sequence_file_t fin{user_bin_paths[user_bin_id]};
                 for (auto & record : fin)
                 {
@@ -82,11 +82,11 @@ void build(configuration const & config)
         }
         else
         {
-            auto syncmer_view =
-                seqan3::views::syncmer({.kmer_size = config.kmer_size, .smer_size = config.s, .offset = config.t});
-
             result = [&](size_t const user_bin_id, seqan::hibf::insert_iterator it)
             {
+                auto syncmer_view =
+                    seqan3::views::syncmer({.kmer_size = config.kmer_size, .smer_size = config.s, .offset = config.t});
+
                 sequence_file_t fin{user_bin_paths[user_bin_id]};
                 for (auto & record : fin)
                 {
