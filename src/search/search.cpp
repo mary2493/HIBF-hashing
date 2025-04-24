@@ -7,7 +7,6 @@
 #include <iostream>
 
 #include <seqan3/io/sequence_file/all.hpp>
-#include <seqan3/search/search.hpp>
 #include <seqan3/search/views/minimiser_hash.hpp>
 
 #include "contrib/syncmer.hpp"
@@ -18,98 +17,72 @@
 #include <hibf/hierarchical_interleaved_bloom_filter.hpp>
 #include <threshold/threshold.hpp>
 
-void search(configuration const & config)
+threshold::threshold get_thresholder(configuration const & config, myindex const & index)
 {
-    using sequence_file_t = seqan3::sequence_file_input<dna4_traits>;
-
-    myindex index{};
-    index.load(config.index_file);
-
-    if (index.hash == hash_type::syncmer)
+    size_t const first_sequence_size = [&]()
     {
-        if (config.error > 0)
-            throw std::runtime_error{"Syncmer does not support errors."};
-    }
-
-    threshold::threshold const thresholder = [&]() -> threshold::threshold
-    {
-        size_t const first_sequence_size = [&]()
-        {
-            sequence_file_t fin{config.reads};
-            auto & record = *fin.begin();
-            return record.sequence().size();
-        }();
-
-        return {threshold::threshold_parameters{.window_size = index.window_size,
-                                                .shape = seqan3::ungapped{index.kmer_size},
-                                                .query_length = first_sequence_size,
-                                                .errors = config.error}};
+        seqan3::sequence_file_input<dna4_traits> fin{config.reads};
+        auto & record = *fin.begin();
+        return record.sequence().size();
     }();
 
-    sequence_file_t reads_file{config.reads};
+    return {threshold::threshold_parameters{.window_size = index.window_size,
+                                            .shape = seqan3::ungapped{index.kmer_size},
+                                            .query_length = first_sequence_size,
+                                            .errors = config.error}};
+}
 
+void search(configuration const & config)
+{
+    myindex index{};
+    index.load(config.index_file);
     auto agent = index.hibf.membership_agent();
 
-    //for storing the results
     std::vector<std::string> results;
-    std::string current_read{};
+    std::string result_line{};
     std::vector<uint64_t> hashes;
 
+    threshold::threshold const thresholder = get_thresholder(config, index);
     auto get_results = [&](auto & record)
     {
         auto & result = agent.membership_for(hashes, thresholder.get(hashes.size()));
         agent.sort_results();
 
-        current_read.clear();
-        current_read += record.id() + ": [";
+        result_line.clear();
+        result_line += record.id() + ": [";
 
         for (size_t i = 0; i < result.size(); ++i)
         {
-            current_read += std::to_string(result[i]);
+            result_line += std::to_string(result[i]);
             if (i < result.size() - 1)
-                current_read += ",";
+                result_line += ",";
         }
-        current_read += "]\n";
+        result_line += "]\n";
 
         // store the result in the vector
-        results.push_back(current_read);
+        results.push_back(result_line);
+    };
+
+    seqan3::sequence_file_input<dna4_traits> reads_file{config.reads};
+    auto process = [&](auto hash_adaptor)
+    {
+        for (auto & record : reads_file)
+        {
+            auto view = record.sequence() | hash_adaptor | std::views::common;
+            hashes.clear();
+            hashes.assign(view.begin(), view.end());
+            get_results(record);
+        }
     };
 
     if (index.hash != hash_type::syncmer)
     {
-        auto hash_adaptor =
-            seqan3::views::minimiser_hash(seqan3::ungapped{index.kmer_size}, seqan3::window_size{index.window_size});
-
-        for (auto & record : reads_file)
-        {
-            if (record.sequence().size() < index.window_size)
-            {
-                throw std::runtime_error{"read in file is shorter than the k-mer/window size."};
-            }
-
-            auto minimiser_view = record.sequence() | hash_adaptor | std::views::common;
-            hashes.clear();
-            hashes.assign(minimiser_view.begin(), minimiser_view.end());
-            get_results(record);
-        }
+        process(
+            seqan3::views::minimiser_hash(seqan3::ungapped{index.kmer_size}, seqan3::window_size{index.window_size}));
     }
-
     else
     {
-        auto hash_adaptor =
-            seqan3::views::syncmer({.kmer_size = index.kmer_size, .smer_size = index.s, .offset = index.t});
-
-        for (auto & record : reads_file)
-        {
-            if (record.sequence().size() < index.kmer_size)
-            {
-                throw std::runtime_error{"read in file is shorter than the k-mer size."};
-            }
-            auto syncmer_view = record.sequence() | hash_adaptor | std::views::common;
-            hashes.clear();
-            hashes.assign(syncmer_view.begin(), syncmer_view.end());
-            get_results(record);
-        }
+        process(seqan3::views::syncmer({.kmer_size = index.kmer_size, .smer_size = index.s, .offset = index.t}));
     }
 
     std::cout << "The following hits were found:\n";
