@@ -25,18 +25,18 @@ void run_search(sharg::parser & parser)
                                     .required = true,
                                     .validator = sharg::input_file_validator{}});
 
-    parser.add_option(config.threshold,
+    parser.add_option(config.error,
                       sharg::config{.short_id = 'e',
                                     .long_id = "error",
-                                    .description = "Maximum allowed error (threshold for mismatches).",
-                                    .required = false,
-                                    .validator = sharg::arithmetic_range_validator{1, 16}});
+                                    .description = "The maximum number of errors allowed.",
+                                    .validator = sharg::arithmetic_range_validator{0, 5}});
+
     parser.add_option(
         config.search_output,
         sharg::config{.short_id = 'o',
                       .long_id = "output",
                       .description = ".txt file to write the search results to.",
-                      .validator = sharg::output_file_validator{sharg::output_file_open_options::create_new}});
+                      .validator = sharg::output_file_validator{sharg::output_file_open_options::open_or_create}});
 
     try
     {

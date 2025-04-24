@@ -6,42 +6,64 @@
 #include <seqan3/search/search.hpp>
 #include <seqan3/search/views/minimiser_hash.hpp>
 
+#include "index_data.hpp"
+#include "dna4_traits.hpp"
 #include <cereal/archives/binary.hpp>
 #include <hibf/config.hpp>
 #include <hibf/hierarchical_interleaved_bloom_filter.hpp>
+#include <threshold/threshold.hpp>
 
 void search(configuration const & config)
 {
+    using sequence_file_t = seqan3::sequence_file_input<dna4_traits>;
 
-    seqan::hibf::hierarchical_interleaved_bloom_filter hibf;
+    myindex index{};
+    index.load(config.index_file);
 
-    std::ifstream is{config.index_file, std::ios::binary};
-    cereal::BinaryInputArchive iarchive{is};
-    iarchive(hibf);
+    threshold::threshold const thresholder = [&]() -> threshold::threshold
+    {
+        size_t const first_sequence_size = [&]()
+        {
+            sequence_file_t fin{config.reads};
+            auto & record = *fin.begin();
+            return record.sequence().size();
+        }();
 
-    seqan3::sequence_file_input<seqan3::sequence_file_input_default_traits_dna> reads_file{config.reads};
+        return {threshold::threshold_parameters{.window_size = index.window_size,
+                                                .shape = seqan3::ungapped{index.kmer_size},
+                                                .query_length = first_sequence_size,
+                                                .errors = config.error}};
+    }();
 
-    auto agent = hibf.membership_agent();
-    size_t threshold = config.threshold;
+    sequence_file_t reads_file{config.reads};
+
+    auto agent = index.hibf.membership_agent();
+
+    auto hash_adaptor =
+        seqan3::views::minimiser_hash(seqan3::ungapped{index.kmer_size}, seqan3::window_size{index.window_size});
 
     //for storing the results
-    std::vector<std::string> result_for_cout;
-    std::vector<std::string> result_for_txt;
+    std::vector<std::string> results;
+    std::string current_read{};
+    std::vector<uint64_t> minimiser;
 
     for (auto & record : reads_file)
     {
-        if (record.sequence().size() < config.kmer_size)
+        if (record.sequence().size() < index.window_size)
         {
-            throw std::runtime_error{"read in file is shorter than the k-mer size."};
+            throw std::runtime_error{"read in file is shorter than the k-mer/window size."};
         }
 
-        auto kmer_view =
-            record.sequence()
-            | seqan3::views::minimiser_hash(seqan3::ungapped{config.kmer_size}, seqan3::window_size{config.kmer_size});
-        auto & result = agent.membership_for(kmer_view, threshold);
+        auto minimiser_view = record.sequence() | hash_adaptor | std::views::common;
+        minimiser.clear();
+        minimiser.assign(minimiser_view.begin(), minimiser_view.end());
 
-        std::string current_read = record.id() + ": [";
-        
+        auto & result = agent.membership_for(minimiser, thresholder.get(minimiser.size()));
+        agent.sort_results();
+
+        current_read.clear();
+        current_read += record.id() + ": [";
+
         for (size_t i = 0; i < result.size(); ++i)
         {
             current_read += std::to_string(result[i]);
@@ -51,19 +73,18 @@ void search(configuration const & config)
         current_read += "]\n";
 
         // store the result in the vector
-        result_for_cout.push_back(current_read);
-        result_for_txt.push_back(record.id() + ": " + current_read);
+        results.push_back(current_read);
     }
 
     std::cout << "The following hits were found:\n";
     //print to console
-    for (auto & record : result_for_cout)
+    for (auto & record : results)
     {
         std::cout << record;
     }
     //save to file
     std::ofstream result_out{config.search_output};
-    for (auto & record : result_for_txt)
+    for (auto & record : results)
     {
         result_out << record;
     }

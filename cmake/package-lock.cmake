@@ -19,7 +19,7 @@ CPMDeclarePackage (hibf
 )
 
 # sharg
-set (SHARG_VERSION c81c1f858054c7114d4d0e82c1c5c2d78574cb5e CACHE STRING "" FORCE)
+set (SHARG_VERSION dfff01056dda9271b158d34427f2d28fad9f7440 CACHE STRING "" FORCE)
 CPMDeclarePackage (sharg
                    NAME sharg
                    GIT_TAG ${SHARG_VERSION} # main
@@ -69,6 +69,15 @@ CPMDeclarePackage (use_ccache
                    GIT_TAG ${USE_CCACHE_VERSION} # main
                    GITHUB_REPOSITORY seqan/cmake-scripts
                    SOURCE_SUBDIR ccache
+                   SYSTEM TRUE
+                   EXCLUDE_FROM_ALL TRUE
+)
+
+# thresholding
+CPMDeclarePackage (thresholding
+                   NAME thresholding
+                   URL "${PROJECT_SOURCE_DIR}/contrib/threshold.tar.gz"
+                   URL_HASH SHA256=4990c7fb9778a2fb8a19794b966d57496ca77bcd708b4cee3c93eea6e5b67d80
                    SYSTEM TRUE
                    EXCLUDE_FROM_ALL TRUE
 )

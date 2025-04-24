@@ -11,18 +11,18 @@
 struct api_search_test : public app_test
 {};
 
-TEST_F(api_search_test, default_config)
+TEST_F(api_search_test, default_config_kmer)
 {
     configuration config{};
     config.reads = data("reads.fasta");
-    config.index_file = data("test_index.bin");
+    config.index_file = data("test_index_kmer.bin");
     config.kmer_size = 20;
-    config.threshold = 1;
+    config.hash = hash_type::kmer;
 
     testing::internal::CaptureStdout();
     testing::internal::CaptureStderr();
 
-    search(config);
+    EXPECT_NO_THROW(search(config));
 
     std::string const std_cout = testing::internal::GetCapturedStdout();
     std::string const std_cerr = testing::internal::GetCapturedStderr();
@@ -33,4 +33,31 @@ TEST_F(api_search_test, default_config)
                                     "read3: [1]\n"};
 
     EXPECT_EQ(expected_cout, std_cout);
+    EXPECT_EQ("", std_cerr);
+}
+
+TEST_F(api_search_test, default_config_minimiser)
+{
+    configuration config{};
+    config.reads = data("reads.fasta");
+    config.index_file = data("test_index_minimiser.bin");
+    config.kmer_size = 18;
+    config.window_size = 20;
+    config.hash = hash_type::minimiser;
+
+    testing::internal::CaptureStdout();
+    testing::internal::CaptureStderr();
+
+    EXPECT_NO_THROW(search(config));
+
+    std::string const std_cout = testing::internal::GetCapturedStdout();
+    std::string const std_cerr = testing::internal::GetCapturedStderr();
+
+    std::string const expected_cout{"The following hits were found:\n"
+                                    "read1: [1,2]\n"
+                                    "read2: []\n"
+                                    "read3: [1]\n"};
+
+    EXPECT_EQ(expected_cout, std_cout);
+    EXPECT_EQ("", std_cerr);
 }
