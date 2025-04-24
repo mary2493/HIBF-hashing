@@ -11,17 +11,17 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "test" / "data"
 HIBF_BINARY = BASE_DIR / "build" / "HIBF-hashing"
-COMPARE_DIR = DATA_DIR / "compare"
+COMPARE_DIR = BASE_DIR / "test" / "benchmark" / "output"
 TXT_FILE = COMPARE_DIR / "hibf_benchmark_results.txt"
 
 # Experiments for building and searching without errors
 experiments = [
-    ("kmer",      DATA_DIR / "provided_list_files.txt", DATA_DIR / "provided/query.fq",     ["--kmer", "20"]),
-    ("kmer",      DATA_DIR / "file_list.txt",           DATA_DIR / "reads.fasta",           ["--kmer", "20"]),
-    ("minimiser", DATA_DIR / "provided_list_files.txt", DATA_DIR / "provided/query.fq",     ["--kmer", "20", "--window", "24"]),
-    ("minimiser", DATA_DIR / "file_list.txt",           DATA_DIR / "reads.fasta",           ["--kmer", "18", "--window", "20"]),
-    ("syncmer",   DATA_DIR / "provided_list_files.txt", DATA_DIR / "provided/query.fq",     ["--kmer", "15", "--syncmer_s", "11", "--syncmer_t", "2"]),
-    ("syncmer",   DATA_DIR / "file_list.txt",           DATA_DIR / "reads.fasta",           ["--kmer", "15", "--syncmer_s", "11", "--syncmer_t", "2"]),
+    ("minimiser",      DATA_DIR / "list.txt", DATA_DIR / "query.fq", ["--kmer", "20", "--window", "24"]),
+    # ("kmer",      DATA_DIR / "file_list.txt",           DATA_DIR / "reads.fasta",           ["--kmer", "20"]),
+    ("minimiser", DATA_DIR / "list.txt", DATA_DIR / "query.fq",      ["--kmer", "20", "--window", "24"]),
+    # ("minimiser", DATA_DIR / "file_list.txt",           DATA_DIR / "reads.fasta",           ["--kmer", "18", "--window", "20"]),
+    ("syncmer",   DATA_DIR / "list.txt", DATA_DIR / "query.fq",      ["--kmer", "15", "--syncmer_s", "11", "--syncmer_t", "2"]),
+    # ("syncmer",   DATA_DIR / "file_list.txt",           DATA_DIR / "reads.fasta",           ["--kmer", "15", "--syncmer_s", "11", "--syncmer_t", "2"]),
 ]
 
 def run_and_measure(cmd, description):
@@ -54,7 +54,7 @@ if __name__ == "__main__":
         search_output = COMPARE_DIR / f"search_{tag}.txt"
 
         # build
-        build_cmd = [HIBF_BINARY, "build", "-i", file_list, "-o", index_file, "-m", hash_type] + build_args
+        build_cmd = [HIBF_BINARY, "build", hash_type, "-i", file_list, "-o", index_file] + build_args
         build_time, _ = run_and_measure(build_cmd, f"Build for {hash_type} using {file_list.name}")
 
         # search
@@ -69,8 +69,8 @@ if __name__ == "__main__":
 
     # Only search with --error 2 for kmer/minimiser (no new builds)
     extra_error_experiments = [
-        ("kmer",      DATA_DIR / "provided_list_files.txt", DATA_DIR / "provided/query.fq",     ["--kmer", "20"]),
-        ("minimiser", DATA_DIR / "provided_list_files.txt", DATA_DIR / "provided/query.fq",     ["--kmer", "20", "--window", "24"]),
+        ("kmer",      DATA_DIR / "list.txt", DATA_DIR / "provided/query.fq",     ["--kmer", "20"]),
+        ("minimiser", DATA_DIR / "list.txt", DATA_DIR / "provided/query.fq",     ["--kmer", "20", "--window", "24"]),
     ]
 
     for hash_type, file_list, reads_file, _ in extra_error_experiments:
@@ -105,7 +105,7 @@ if __name__ == "__main__":
             f.write("".ljust(25))
             f.write("\t".join(h.ljust(25) for h in headers) + "\n")
             f.write("Time\n")
-            
+
             for kind in ["build_time", "search_time"]:
                 label = "B" if kind == "build_time" else "S"
                 times = [f"{label}:{data[ht][kind]:.2f}s" if ht in data and data[ht][kind] != "-" else "-" for ht in ["kmer", "minimiser", "syncmer", "kmer_error2", "minimiser_error2"]]
