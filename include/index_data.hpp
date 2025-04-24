@@ -26,17 +26,12 @@ public:
     myindex & operator=(myindex &&) = default;
     ~myindex() = default;
 
-    explicit myindex(uint8_t const kmer,
-                     seqan::hibf::hierarchical_interleaved_bloom_filter index,
-                     uint8_t const window = 0,
-                     uint8_t const syncmer_s = 0,
-                     uint8_t const syncmer_t = 0,
-                     hash_type const hash_type = hash_type::kmer) :
-        kmer_size{kmer},
-        window_size{window},
-        s{syncmer_s},
-        t{syncmer_t},
-        hash{hash_type},
+    explicit myindex(configuration const & config, seqan::hibf::hierarchical_interleaved_bloom_filter index) :
+        kmer_size{config.kmer_size},
+        window_size{config.window_size},
+        s{config.s},
+        t{config.t},
+        hash{config.hash},
         hibf{std::move(index)}
     {}
 
