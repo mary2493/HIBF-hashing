@@ -44,6 +44,8 @@ void run_minimiser(sharg::parser & parser)
                                     .default_message = "k-mer size",
                                     .validator = sharg::arithmetic_range_validator{1, 200}});
 
+    parser.parse();
+
     // Make window default to kmer size if not set.
     if (!parser.is_option_set("window"))
         config.window_size = config.kmer_size;
@@ -75,6 +77,8 @@ void run_syncmer(sharg::parser & parser)
                                     .long_id = "syncmer_t",
                                     .description = "position within the k-mer at which the minimal s-mer must occur.",
                                     .validator = sharg::arithmetic_range_validator{0, 32}});
+
+    parser.parse();
 
     if (config.s >= config.kmer_size)
         throw std::invalid_argument{"Syncmer s-mer size must be smaller than k-mer size."};

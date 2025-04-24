@@ -10,7 +10,7 @@ struct search_test : public app_test, public testing::WithParamInterface<std::tu
     static std::filesystem::path get_index(std::string_view const hash_type)
     {
         if (hash_type == "kmer")
-            return data("20_20.index");
+            return data("20_20_version2.index");
         else if (hash_type == "minimiser")
             return data("20_24_version2.index");
         else
@@ -38,6 +38,7 @@ TEST_F(search_test, check_index)
         std::string_view const window_size = (hash_type == "kmer") ? "20" : "24";
         app_test_result const result = execute_app("HIBF-hashing",
                                                    "build",
+                                                   "minimiser",
                                                    "--input",
                                                    data("provided_files.txt"),
                                                    "--output",
@@ -58,12 +59,11 @@ TEST_F(search_test, check_index_syncmer)
 {
     app_test_result const result = execute_app("HIBF-hashing",
                                                "build",
+                                               "syncmer",
                                                "--input",
                                                data("provided_files.txt"),
                                                "--output syncmer",
-                                               "--mode syncmer",
                                                "--kmer 15",
-                                               "--window 20",
                                                "--syncmer_s 11",
                                                "--syncmer_t 2");
     EXPECT_SUCCESS(result);

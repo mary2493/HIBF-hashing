@@ -17,7 +17,8 @@ TEST_F(api_build_test, default_config_kmer)
     config.file_list_path = data("provided_files.txt");
     config.index_output = "new_kmer.index";
     config.kmer_size = 20;
-    config.hash = hash_type::kmer;
+    config.window_size = 20;
+    config.hash = hash_type::minimiser;
     testing::internal::CaptureStdout();
     testing::internal::CaptureStderr();
 
@@ -69,7 +70,6 @@ TEST_F(api_build_test, default_config_syncmer)
     config.file_list_path = data("provided_files.txt");
     config.index_output = "new_syncmer.index";
     config.kmer_size = 15;
-    config.window_size = 20u;
     config.s = 11;
     config.t = 2;
     config.hash = hash_type::syncmer;
