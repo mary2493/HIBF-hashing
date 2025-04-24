@@ -6,7 +6,7 @@
 
 #include <filesystem>
 
-enum class hash_type
+enum class hash_type : uint8_t
 {
     kmer,
     minimiser,

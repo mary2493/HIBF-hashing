@@ -10,7 +10,7 @@ struct search_test : public app_test, public testing::WithParamInterface<std::tu
     static std::filesystem::path get_index(std::string_view const hash_type)
     {
         if (hash_type == "kmer")
-            return data("20_20_version2.index");
+            return data("20_20.index");
         else if (hash_type == "minimiser")
             return data("20_24_version2.index");
         else
@@ -48,26 +48,26 @@ TEST_F(search_test, check_index)
         EXPECT_SUCCESS(result);
         EXPECT_EQ(result.err, "");
 
-        EXPECT_TRUE(string_from_file(hash_type) == string_from_file(get_index(hash_type))) << "Index files differ";
+        EXPECT_TRUE(string_from_file(hash_type) == string_from_file(get_index(hash_type)))
+            << "Index files differ " << hash_type;
     }
 }
 
 TEST_F(search_test, check_index_syncmer)
 {
-        app_test_result const result = execute_app("HIBF-hashing",
-                                                   "build",
-                                                   "--input",
-                                                   data("provided_files.txt"),
-                                                   "--output syncmer",
-                                                   "--mode syncmer",
-                                                   "--kmer 15",
-                                                   "--syncmer_s 11",
-                                                   "--syncmer_t 2");
-        EXPECT_SUCCESS(result);
-        EXPECT_EQ(result.err, "");
+    app_test_result const result = execute_app("HIBF-hashing",
+                                               "build",
+                                               "--input",
+                                               data("provided_files.txt"),
+                                               "--output syncmer",
+                                               "--mode syncmer",
+                                               "--kmer 15",
+                                               "--syncmer_s 11",
+                                               "--syncmer_t 2");
+    EXPECT_SUCCESS(result);
+    EXPECT_EQ(result.err, "");
 
-        EXPECT_TRUE(string_from_file("syncmer") == string_from_file(get_index("syncmer"))) << "Index files differ";
-    
+    EXPECT_TRUE(string_from_file("syncmer") == string_from_file(get_index("syncmer"))) << "Index files differ";
 }
 
 TEST_P(search_test, run)

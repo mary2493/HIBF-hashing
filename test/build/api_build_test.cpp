@@ -31,6 +31,8 @@ TEST_F(api_build_test, default_config_kmer)
 
     EXPECT_EQ(expected_cout, std_cout);
     EXPECT_EQ("", std_cerr);
+
+    EXPECT_TRUE(string_from_file("new_kmer.index") == string_from_file(data("20_20_version2.index"))) << "Index files differ";
 }
 
 TEST_F(api_build_test, default_config_minimiser)
@@ -55,6 +57,8 @@ TEST_F(api_build_test, default_config_minimiser)
 
     EXPECT_EQ(expected_cout, std_cout);
     EXPECT_EQ("", std_cerr);
+
+    EXPECT_TRUE(string_from_file("new_minimiser.index") == string_from_file(data("20_24_version2.index"))) << "Index files differ";
 }
 
 TEST_F(api_build_test, default_config_syncmer)
@@ -80,4 +84,6 @@ TEST_F(api_build_test, default_config_syncmer)
 
     EXPECT_EQ(expected_cout, std_cout);
     EXPECT_EQ("", std_cerr);
+
+    EXPECT_TRUE(string_from_file("new_syncmer.index") == string_from_file(data("15_11_2.index"))) << "Index files differ";
 }
