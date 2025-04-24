@@ -47,6 +47,7 @@ TEST_F(search_test, check_index)
                                                    window_size);
         EXPECT_SUCCESS(result);
         EXPECT_EQ(result.err, "");
+        ASSERT_TRUE(std::filesystem::exists(hash_type));
 
         EXPECT_TRUE(string_from_file(hash_type) == string_from_file(get_index(hash_type)))
             << "Index files differ " << hash_type;
@@ -62,10 +63,12 @@ TEST_F(search_test, check_index_syncmer)
                                                "--output syncmer",
                                                "--mode syncmer",
                                                "--kmer 15",
+                                               "--window 20",
                                                "--syncmer_s 11",
                                                "--syncmer_t 2");
     EXPECT_SUCCESS(result);
     EXPECT_EQ(result.err, "");
+    ASSERT_TRUE(std::filesystem::exists("syncmer"));
 
     EXPECT_TRUE(string_from_file("syncmer") == string_from_file(get_index("syncmer"))) << "Index files differ";
 }

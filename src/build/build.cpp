@@ -59,61 +59,53 @@ void build(configuration const & config)
     if (user_bin_paths.empty())
         throw std::runtime_error{"No valid files found in the file list."};
 
-    std::function<void(size_t, seqan::hibf::insert_iterator &&)> input_fn;
-    uint8_t current_hash = 0u;
-    uint8_t sync_s = 0u;
-    uint8_t sync_t = 0u;
-
-    if (config.hash != hash_type::syncmer)
+    auto input_fn = [&]()
     {
-
-        if (config.hash == hash_type::kmer)
-            current_hash = config.kmer_size;
-        else if (config.hash == hash_type::minimiser)
-            current_hash = config.window_size;
-
-        auto minimiser_view =
-            seqan3::views::minimiser_hash(seqan3::ungapped{config.kmer_size}, seqan3::window_size{current_hash});
-        auto get_user_bin_data_m = [&](size_t const user_bin_id, seqan::hibf::insert_iterator it)
+        std::function<void(size_t, seqan::hibf::insert_iterator &&)> result;
+        if (config.hash != hash_type::syncmer)
         {
-            sequence_file_t fin{user_bin_paths[user_bin_id]};
-            for (auto & record : fin)
-            {
-                if (record.sequence().size() < config.kmer_size)
-                    throw std::runtime_error{"Sequence in " + user_bin_paths[user_bin_id]
-                                             + " is shorter than the k-mer size."};
+            auto minimiser_view = seqan3::views::minimiser_hash(seqan3::ungapped{config.kmer_size},
+                                                                seqan3::window_size{config.window_size});
 
-                std::ranges::copy(record.sequence() | minimiser_view, it);
-            }
-        };
-        input_fn = get_user_bin_data_m;
-    }
-    else
-    {
-        sync_s = config.s;
-        sync_t = config.t;
-        auto get_user_bin_data_s = [&](size_t const user_bin_id, seqan::hibf::insert_iterator it)
+            result = [&](size_t const user_bin_id, seqan::hibf::insert_iterator it)
+            {
+                sequence_file_t fin{user_bin_paths[user_bin_id]};
+                for (auto & record : fin)
+                {
+                    if (record.sequence().size() < config.window_size)
+                        throw std::runtime_error{"Sequence in " + user_bin_paths[user_bin_id]
+                                                 + " is shorter than the window/k-mer size."};
+
+                    std::ranges::copy(record.sequence() | minimiser_view, it);
+                }
+            };
+        }
+        else
         {
-            sequence_file_t fin{user_bin_paths[user_bin_id]};
-            for (auto & record : fin)
+            auto syncmer_view =
+                seqan3::views::syncmer({.kmer_size = config.kmer_size, .smer_size = config.s, .offset = config.t});
+
+            result = [&](size_t const user_bin_id, seqan::hibf::insert_iterator it)
             {
-                if (record.sequence().size() < config.kmer_size)
-                    throw std::runtime_error{"Sequence in " + user_bin_paths[user_bin_id]
-                                             + " is shorter than the k-mer size."};
+                sequence_file_t fin{user_bin_paths[user_bin_id]};
+                for (auto & record : fin)
+                {
 
-                std::ranges::copy(record.sequence()
-                                      | seqan3::views::syncmer(
-                                          {.kmer_size = config.kmer_size, .smer_size = sync_s, .offset = sync_t}),
-                                  it);
+                    if (record.sequence().size() < config.kmer_size)
+                        throw std::runtime_error{"Sequence in " + user_bin_paths[user_bin_id]
+                                                 + " is shorter than the k-mer size."};
 
-                /*if (std::ranges::empty((record.sequence()
+                    std::ranges::copy(record.sequence() | syncmer_view, it);
+
+                    /*if (std::ranges::empty((record.sequence()
                                         | seqan3::views::syncmer(
                                             {.kmer_size = config.kmer_size, .smer_size = sync_s, .offset = sync_t}))))
                     throw std::runtime_error{"No syncmers were generated. Check your parameters k, s, t."};*/
-            }
-        };
-        input_fn = get_user_bin_data_s;
-    }
+                }
+            };
+        }
+        return result;
+    }();
 
     seqan::hibf::config hibf_config{.input_fn = input_fn,                         // required
                                     .number_of_user_bins = user_bin_paths.size(), // required
@@ -125,7 +117,7 @@ void build(configuration const & config)
     seqan::hibf::hierarchical_interleaved_bloom_filter hibf{hibf_config};
 
     //The indices can also be stored and loaded from disk by using cereal
-    myindex index{config.kmer_size, std::move(hibf), current_hash, sync_s, sync_t, config.hash};
+    myindex index{config.kmer_size, std::move(hibf), config.window_size, config.s, config.t, config.hash};
     index.store(config.index_output);
 
     std::cout << "HIBF index built and saved to " << config.index_output << "\n";

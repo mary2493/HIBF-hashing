@@ -88,7 +88,7 @@ void run_build(sharg::parser & parser)
         {
             throw std::runtime_error{"Window size must be greater than or equal to k-mer size."};
         }
-        else // If window provided, user wants minimiser.
+        else if (!parser.is_option_set("mode")) // If window provided, user wants minimiser.
         {
             config.hash = hash_type::minimiser;
         }
