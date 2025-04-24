@@ -106,10 +106,10 @@ void build(configuration const & config)
                                           {.kmer_size = config.kmer_size, .smer_size = sync_s, .offset = sync_t}),
                                   it);
 
-               /*if (std::ranges::empty((record.sequence()
+                /*if (std::ranges::empty((record.sequence()
                                         | seqan3::views::syncmer(
                                             {.kmer_size = config.kmer_size, .smer_size = sync_s, .offset = sync_t}))))
-                    throw std::runtime_error{"No syncmers were generated. Check your parameters k, s, t."};*/ 
+                    throw std::runtime_error{"No syncmers were generated. Check your parameters k, s, t."};*/
             }
         };
         input_fn = get_user_bin_data_s;
