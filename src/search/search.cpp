@@ -40,6 +40,7 @@ void search(configuration const & config)
 
     std::vector<std::string> results;
     std::string result_line{};
+    std::array<char, std::numeric_limits<uint64_t>::digits10 + 1> buffer{};
     std::vector<uint64_t> hashes;
 
     threshold::threshold const thresholder = get_thresholder(config, index);
@@ -51,12 +52,18 @@ void search(configuration const & config)
         result_line.clear();
         result_line += record.id() + ": [";
 
-        for (size_t i = 0; i < result.size(); ++i)
+        for (auto && bin : result)
         {
-            result_line += std::to_string(result[i]);
-            if (i < result.size() - 1)
-                result_line += ",";
+            auto conv = std::to_chars(buffer.data(), buffer.data() + buffer.size(), bin);
+            assert(conv.ec == std::errc{});
+            std::string_view sv{buffer.data(), conv.ptr};
+            result_line += sv;
+            result_line += ',';
         }
+
+        if (result_line.back() == ',')
+            result_line.pop_back();
+
         result_line += "]\n";
 
         // store the result in the vector
