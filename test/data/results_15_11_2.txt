@@ -1,3 +1,0 @@
-query1: [0]
-query2: [1]
-query3: [2]

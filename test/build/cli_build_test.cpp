@@ -36,7 +36,7 @@ TEST_F(cli_build_test, with_arguments_kmer)
                                                "build",
                                                "minimiser",
                                                "--input",
-                                               data("provided_files.txt"),
+                                               data("list.txt"),
                                                "--output new_kmer.index",
                                                "--kmer 20",
                                                "--window 20");
@@ -55,7 +55,7 @@ TEST_F(cli_build_test, with_arguments_minimiser)
                                                "build",
                                                "minimiser",
                                                "--input",
-                                               data("provided_files.txt"),
+                                               data("list.txt"),
                                                "--output new_minimiser.index",
                                                "--kmer 20",
                                                "--window 24");
@@ -74,7 +74,7 @@ TEST_F(cli_build_test, with_arguments_syncmer)
                                                "build",
                                                "syncmer",
                                                "--input",
-                                               data("provided_files.txt"),
+                                               data("list.txt"),
                                                "--output new_syncmer.index",
                                                "--kmer 15",
                                                "--syncmer_s 11",
@@ -91,7 +91,7 @@ TEST_F(cli_build_test, with_arguments_syncmer)
 TEST_F(cli_build_test, missing_path)
 {
     app_test_result const result =
-        execute_app("HIBF-hashing", "build", "minimiser", "--input", data("provided_files.txt"), "-o", "");
+        execute_app("HIBF-hashing", "build", "minimiser", "--input", data("list.txt"), "-o", "");
 
     EXPECT_FAILURE(result);
     EXPECT_EQ(result.out, "");
@@ -110,12 +110,8 @@ TEST_F(cli_build_test, invalid_input_path)
 
 TEST_F(cli_build_test, invalid_output_path)
 {
-    app_test_result const result = execute_app("HIBF-hashing",
-                                               "build",
-                                               "minimiser",
-                                               "--input",
-                                               data("provided_files.txt"),
-                                               "--output does/not/exist");
+    app_test_result const result =
+        execute_app("HIBF-hashing", "build", "minimiser", "--input", data("list.txt"), "--output does/not/exist");
 
     EXPECT_FAILURE(result);
     EXPECT_EQ(result.out, "");

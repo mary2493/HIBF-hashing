@@ -15,7 +15,7 @@ TEST_F(api_search_test, default_config_kmer)
 {
     configuration config{};
     config.reads = data("query.fq");
-    config.index_file = data("20_20_version2.index");
+    config.index_file = data("kmer.index");
     config.kmer_size = 20;
     config.window_size = 20;
     config.hash = hash_type::minimiser;
@@ -41,7 +41,7 @@ TEST_F(api_search_test, default_config_minimiser)
 {
     configuration config{};
     config.reads = data("query.fq");
-    config.index_file = data("20_24_version2.index");
+    config.index_file = data("minimiser.index");
     config.kmer_size = 20;
     config.window_size = 24;
     config.hash = hash_type::minimiser;
@@ -67,7 +67,7 @@ TEST_F(api_search_test, default_config_syncmer)
 {
     configuration config{};
     config.reads = data("query.fq");
-    config.index_file = data("15_11_2.index");
+    config.index_file = data("syncmer.index");
     config.kmer_size = 15;
     config.s = 11;
     config.t = 2;

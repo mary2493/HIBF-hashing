@@ -10,11 +10,11 @@ struct search_test : public app_test, public testing::WithParamInterface<std::tu
     static std::filesystem::path get_index(std::string_view const hash_type)
     {
         if (hash_type == "kmer")
-            return data("20_20_version2.index");
+            return data("kmer.index");
         else if (hash_type == "minimiser")
-            return data("20_24_version2.index");
+            return data("minimiser.index");
         else
-            return data("15_11_2.index");
+            return data("syncmer.index");
     }
 
     static std::string_view get_expected_hits(std::string_view const hash_type, uint16_t const errors)
@@ -40,7 +40,7 @@ TEST_F(search_test, check_index)
                                                    "build",
                                                    "minimiser",
                                                    "--input",
-                                                   data("provided_files.txt"),
+                                                   data("list.txt"),
                                                    "--output",
                                                    hash_type,
                                                    "--kmer 20",
@@ -61,7 +61,7 @@ TEST_F(search_test, check_index_syncmer)
                                                "build",
                                                "syncmer",
                                                "--input",
-                                               data("provided_files.txt"),
+                                               data("list.txt"),
                                                "--output syncmer",
                                                "--kmer 15",
                                                "--syncmer_s 11",

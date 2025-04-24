@@ -33,7 +33,7 @@ TEST_F(cli_search_test, missing_required_argument_index)
 TEST_F(cli_search_test, missing_required_argument_reads)
 {
     app_test_result const result =
-        execute_app("HIBF-hashing", "search", "index", data("20_20_version2.index"), "--output result.out");
+        execute_app("HIBF-hashing", "search", "index", data("kmer.index"), "--output result.out");
     std::string_view const expected{"Parsing error. Option -i/--index is required but not set.\n"};
 
     EXPECT_FAILURE(result);
@@ -46,7 +46,7 @@ TEST_F(cli_search_test, with_arguments_kmer)
     app_test_result const result = execute_app("HIBF-hashing",
                                                "search",
                                                "--index",
-                                               data("20_20_version2.index"),
+                                               data("kmer.index"),
                                                "--reads",
                                                data("query.fq"),
                                                "--output result.out");
@@ -68,7 +68,7 @@ TEST_F(cli_search_test, with_arguments_minimiser)
     app_test_result const result = execute_app("HIBF-hashing",
                                                "search",
                                                "--index",
-                                               data("20_24_version2.index"),
+                                               data("minimiser.index"),
                                                "--reads",
                                                data("query.fq"),
                                                "--output result.out");
@@ -90,7 +90,7 @@ TEST_F(cli_search_test, with_arguments_syncmer)
     app_test_result const result = execute_app("HIBF-hashing",
                                                "search",
                                                "--index",
-                                               data("15_11_2.index"),
+                                               data("syncmer.index"),
                                                "--reads",
                                                data("query.fq"),
                                                "--output result.out");
@@ -109,14 +109,8 @@ TEST_F(cli_search_test, with_arguments_syncmer)
 
 TEST_F(cli_search_test, missing_path)
 {
-    app_test_result const result = execute_app("HIBF-hashing",
-                                               "search",
-                                               "--index",
-                                               data("20_20_version2.index"),
-                                               "--reads",
-                                               data("query.fq"),
-                                               "-o",
-                                               "");
+    app_test_result const result =
+        execute_app("HIBF-hashing", "search", "--index", data("kmer.index"), "--reads", data("query.fq"), "-o", "");
 
     EXPECT_FAILURE(result);
     EXPECT_EQ(result.out, "");
@@ -138,7 +132,7 @@ TEST_F(cli_search_test, invalid_output_path)
     app_test_result const result = execute_app("HIBF-hashing",
                                                "search",
                                                "--index",
-                                               data("20_20_version2.index"),
+                                               data("kmer.index"),
                                                "--reads",
                                                data("query.fq"),
                                                "--output does/not/exist");
