@@ -8,7 +8,7 @@ from pathlib import Path
 
 # this script is used to compare the performance of different hash types
 # Setup directories and paths
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parents[2]
 DATA_DIR = BASE_DIR / "test" / "data"
 HIBF_BINARY = BASE_DIR / "build" / "HIBF-hashing"
 COMPARE_DIR = BASE_DIR / "test" / "benchmark" / "output"
