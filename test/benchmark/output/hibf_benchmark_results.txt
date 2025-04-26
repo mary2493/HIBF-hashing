@@ -3,8 +3,8 @@ Data name of reads: query.fq
 
                          kmer (err=0)             	minimiser (err=0)        	syncmer (err=0)          	kmer (err=2)             	minimiser (err=2)        	syncmer (err=2)          
 Time
-                         B:0.02s                  	B:0.01s                  	B:0.01s                  	-                        	-                        	-                        
-                         S:0.01s                  	S:0.01s                  	S:0.01s                  	S:0.01s                  	S:0.23s                  	S:0.25s                  
+                         B:0.04s                  	B:0.01s                  	B:0.01s                  	-                        	-                        	-                        
+                         S:0.01s                  	S:0.01s                  	S:0.01s                  	S:0.01s                  	S:0.24s                  	S:0.25s                  
 
 Hits                     
                          (error=0)                	(error=0)                	(error=0)                	(error=2)                	(error=2)                	(error=2)                

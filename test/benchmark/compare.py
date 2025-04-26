@@ -5,8 +5,8 @@
 import subprocess
 import time
 from pathlib import Path
+import shutil
 
-# this script is used to compare the performance of different hash types
 # Setup directories and paths
 BASE_DIR = Path(__file__).resolve().parents[2]
 DATA_DIR = BASE_DIR / "test" / "data"
@@ -14,23 +14,25 @@ HIBF_BINARY = BASE_DIR / "build" / "HIBF-hashing"
 COMPARE_DIR = BASE_DIR / "test" / "benchmark" / "output"
 TXT_FILE = COMPARE_DIR / "hibf_benchmark_results.txt"
 
-list_txt = DATA_DIR / "list.txt"
-with open(list_txt, "r", encoding="utf-8") as file:
-    inhalt = file.read()
+# Original list.txt
+original_list_txt = DATA_DIR / "list.txt"
+# Temp list.txt
+temp_list_txt = DATA_DIR / "list_temp.txt"
 
-inhalt = inhalt.replace("@data_dir@", str(DATA_DIR))
+# Create a temporary list file with corrected paths
+with open(original_list_txt, "r", encoding="utf-8") as file:
+    content = file.read()
 
-with open(list_txt, "w", encoding="utf-8") as file:
-    file.write(inhalt)
+content = content.replace("@data_dir@", str(DATA_DIR))
+
+with open(temp_list_txt, "w", encoding="utf-8") as file:
+    file.write(content)
 
 # Experiments for building and searching without errors
 experiments = [
-    ("kmer", "minimiser", list_txt, DATA_DIR / "query.fq", ["--kmer", "20", "--window", "20"]),
-    # ("kmer",      DATA_DIR / "file_list.txt",           DATA_DIR / "reads.fasta",           ["--kmer", "20"]),
-    ("minimiser", "minimiser", list_txt, DATA_DIR / "query.fq",      ["--kmer", "20", "--window", "24"]),
-    # ("minimiser", DATA_DIR / "file_list.txt",           DATA_DIR / "reads.fasta",           ["--kmer", "18", "--window", "20"]),
-    ("syncmer", "syncmer", list_txt, DATA_DIR / "query.fq",      ["--kmer", "15", "--syncmer_s", "11", "--syncmer_t", "2"]),
-    # ("syncmer",   DATA_DIR / "file_list.txt",           DATA_DIR / "reads.fasta",           ["--kmer", "15", "--syncmer_s", "11", "--syncmer_t", "2"]),
+    ("kmer", "minimiser", temp_list_txt, DATA_DIR / "query.fq", ["--kmer", "20", "--window", "20"]),
+    ("minimiser", "minimiser", temp_list_txt, DATA_DIR / "query.fq", ["--kmer", "20", "--window", "24"]),
+    ("syncmer", "syncmer", temp_list_txt, DATA_DIR / "query.fq", ["--kmer", "15", "--syncmer_s", "11", "--syncmer_t", "2"]),
 ]
 
 def run_and_measure(cmd, description):
@@ -54,7 +56,7 @@ if __name__ == "__main__":
 
     # Build and normal search (error=0)
     for real_name, hash_type, file_list, reads_file, build_args in experiments:
-        key = (file_list.name, reads_file.name)
+        key = key = (original_list_txt.name, reads_file.name)
         if key not in grouped_results:
             grouped_results[key] = {}
 
@@ -76,15 +78,15 @@ if __name__ == "__main__":
             "hits": "(error=0)\n" + clean_hits(search_output_text)
         }
 
-    # Only search with --error 2 for kmer/minimiser (no new builds)
+    # Only search with --error 2 for kmer/minimiser/syncmer
     extra_error_experiments = [
-        ("kmer", "minimiser", DATA_DIR / "list.txt", DATA_DIR / "query.fq",     ["--kmer", "20", "--window", "20"]),
-        ("minimiser", "minimiser", DATA_DIR / "list.txt", DATA_DIR / "query.fq",     ["--kmer", "20", "--window", "24"]),
-        ("syncmer", "syncmer", DATA_DIR / "list.txt", DATA_DIR / "query.fq",     ["--kmer", "15", "--syncmer_s", "11", "--syncmer_t", "2"]),
+        ("kmer", "minimiser", temp_list_txt, DATA_DIR / "query.fq", ["--kmer", "20", "--window", "20"]),
+        ("minimiser", "minimiser", temp_list_txt, DATA_DIR / "query.fq", ["--kmer", "20", "--window", "24"]),
+        ("syncmer", "syncmer", temp_list_txt, DATA_DIR / "query.fq", ["--kmer", "15", "--syncmer_s", "11", "--syncmer_t", "2"]),
     ]
 
     for real_name, hash_type, file_list, reads_file, _ in extra_error_experiments:
-        key = (file_list.name, reads_file.name)
+        key = key = (original_list_txt.name, reads_file.name)
         tag = f"{real_name}_{file_list.stem}_error2"
         index_file = COMPARE_DIR / f"test_index_{real_name}_{file_list.stem}.bin"
         search_output = COMPARE_DIR / f"search_{tag}.txt"
@@ -142,4 +144,8 @@ if __name__ == "__main__":
                 f.write("\t".join(cell.ljust(25) for cell in row) + "\n")
 
             f.write("\n" + "="*178 + "\n\n")
+
+    # Clean up: remove the temporary list file
+    temp_list_txt.unlink()
+
     print(f"\nResults were saved to: {TXT_FILE}")
