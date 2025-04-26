@@ -14,13 +14,22 @@ HIBF_BINARY = BASE_DIR / "build" / "HIBF-hashing"
 COMPARE_DIR = BASE_DIR / "test" / "benchmark" / "output"
 TXT_FILE = COMPARE_DIR / "hibf_benchmark_results.txt"
 
+list_txt = DATA_DIR / "list.txt"
+with open(list_txt, "r", encoding="utf-8") as file:
+    inhalt = file.read()
+
+inhalt = inhalt.replace("@data_dir@", str(DATA_DIR))
+
+with open(list_txt, "w", encoding="utf-8") as file:
+    file.write(inhalt)
+
 # Experiments for building and searching without errors
 experiments = [
-    ("minimiser",      DATA_DIR / "list.txt", DATA_DIR / "query.fq", ["--kmer", "20", "--window", "24"]),
+    ("kmer", "minimiser", list_txt, DATA_DIR / "query.fq", ["--kmer", "20", "--window", "20"]),
     # ("kmer",      DATA_DIR / "file_list.txt",           DATA_DIR / "reads.fasta",           ["--kmer", "20"]),
-    ("minimiser", DATA_DIR / "list.txt", DATA_DIR / "query.fq",      ["--kmer", "20", "--window", "24"]),
+    ("minimiser", "minimiser", list_txt, DATA_DIR / "query.fq",      ["--kmer", "20", "--window", "24"]),
     # ("minimiser", DATA_DIR / "file_list.txt",           DATA_DIR / "reads.fasta",           ["--kmer", "18", "--window", "20"]),
-    ("syncmer",   DATA_DIR / "list.txt", DATA_DIR / "query.fq",      ["--kmer", "15", "--syncmer_s", "11", "--syncmer_t", "2"]),
+    ("syncmer", "syncmer", list_txt, DATA_DIR / "query.fq",      ["--kmer", "15", "--syncmer_s", "11", "--syncmer_t", "2"]),
     # ("syncmer",   DATA_DIR / "file_list.txt",           DATA_DIR / "reads.fasta",           ["--kmer", "15", "--syncmer_s", "11", "--syncmer_t", "2"]),
 ]
 
@@ -44,12 +53,12 @@ if __name__ == "__main__":
     grouped_results = {}
 
     # Build and normal search (error=0)
-    for hash_type, file_list, reads_file, build_args in experiments:
+    for real_name, hash_type, file_list, reads_file, build_args in experiments:
         key = (file_list.name, reads_file.name)
         if key not in grouped_results:
             grouped_results[key] = {}
 
-        tag = f"{hash_type}_{file_list.stem}"
+        tag = f"{real_name}_{file_list.stem}"
         index_file = COMPARE_DIR / f"test_index_{tag}.bin"
         search_output = COMPARE_DIR / f"search_{tag}.txt"
 
@@ -61,7 +70,7 @@ if __name__ == "__main__":
         search_cmd = [HIBF_BINARY, "search", "-i", index_file, "-r", reads_file, "-o", search_output]
         search_time, search_output_text = run_and_measure(search_cmd, f"Search for {hash_type} using {file_list.name}")
 
-        grouped_results[key][hash_type] = {
+        grouped_results[key][real_name] = {
             "build_time": build_time,
             "search_time": search_time,
             "hits": "(error=0)\n" + clean_hits(search_output_text)
@@ -69,20 +78,21 @@ if __name__ == "__main__":
 
     # Only search with --error 2 for kmer/minimiser (no new builds)
     extra_error_experiments = [
-        ("kmer",      DATA_DIR / "list.txt", DATA_DIR / "provided/query.fq",     ["--kmer", "20"]),
-        ("minimiser", DATA_DIR / "list.txt", DATA_DIR / "provided/query.fq",     ["--kmer", "20", "--window", "24"]),
+        ("kmer", "minimiser", DATA_DIR / "list.txt", DATA_DIR / "query.fq",     ["--kmer", "20", "--window", "20"]),
+        ("minimiser", "minimiser", DATA_DIR / "list.txt", DATA_DIR / "query.fq",     ["--kmer", "20", "--window", "24"]),
+        ("syncmer", "syncmer", DATA_DIR / "list.txt", DATA_DIR / "query.fq",     ["--kmer", "15", "--syncmer_s", "11", "--syncmer_t", "2"]),
     ]
 
-    for hash_type, file_list, reads_file, _ in extra_error_experiments:
+    for real_name, hash_type, file_list, reads_file, _ in extra_error_experiments:
         key = (file_list.name, reads_file.name)
-        tag = f"{hash_type}_{file_list.stem}_error2"
-        index_file = COMPARE_DIR / f"test_index_{hash_type}_{file_list.stem}.bin"
+        tag = f"{real_name}_{file_list.stem}_error2"
+        index_file = COMPARE_DIR / f"test_index_{real_name}_{file_list.stem}.bin"
         search_output = COMPARE_DIR / f"search_{tag}.txt"
 
         search_cmd = [HIBF_BINARY, "search", "-i", index_file, "-r", reads_file, "-o", search_output, "--error", "2"]
         search_time, search_output_text = run_and_measure(search_cmd, f"Search for {hash_type} using {file_list.name} with error=2")
 
-        grouped_results[key][f"{hash_type}_error2"] = {
+        grouped_results[key][f"{real_name}_error2"] = {
             "build_time": "-",
             "search_time": search_time,
             "hits": "(error=2)\n" + clean_hits(search_output_text)
@@ -99,7 +109,8 @@ if __name__ == "__main__":
                 "minimiser (err=0)",
                 "syncmer (err=0)",
                 "kmer (err=2)",
-                "minimiser (err=2)"
+                "minimiser (err=2)",
+                "syncmer (err=2)"
             ]
 
             f.write("".ljust(25))
@@ -108,16 +119,16 @@ if __name__ == "__main__":
 
             for kind in ["build_time", "search_time"]:
                 label = "B" if kind == "build_time" else "S"
-                times = [f"{label}:{data[ht][kind]:.2f}s" if ht in data and data[ht][kind] != "-" else "-" for ht in ["kmer", "minimiser", "syncmer", "kmer_error2", "minimiser_error2"]]
+                times = [f"{label}:{data[ht][kind]:.2f}s" if ht in data and data[ht][kind] != "-" else "-" for ht in ["kmer", "minimiser", "syncmer", "kmer_error2", "minimiser_error2", "syncmer_error2"]]
                 f.write("".ljust(25))
                 f.write("\t".join(t.ljust(25) for t in times) + "\n")
 
             f.write("\n" + "Hits".ljust(25) + "\n")
 
-            hits_by_line = [[] for _ in range(5)]
+            hits_by_line = [[] for _ in range(6)]
             max_lines = 0
 
-            for i, ht in enumerate(["kmer", "minimiser", "syncmer", "kmer_error2", "minimiser_error2"]):
+            for i, ht in enumerate(["kmer", "minimiser", "syncmer", "kmer_error2", "minimiser_error2", "syncmer_error2"]):
                 if ht in data:
                     lines = data[ht]["hits"].splitlines()
                     hits_by_line[i] = lines
@@ -130,5 +141,5 @@ if __name__ == "__main__":
                 f.write("".ljust(25))
                 f.write("\t".join(cell.ljust(25) for cell in row) + "\n")
 
-            f.write("\n" + "="*120 + "\n\n")
+            f.write("\n" + "="*178 + "\n\n")
     print(f"\nResults were saved to: {TXT_FILE}")

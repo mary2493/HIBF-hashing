@@ -1,4 +1,4 @@
-@data_dir@/bin1.fa
-@data_dir@/bin2.fa
-@data_dir@/bin3.fa
-@data_dir@/bin4.fa
+/home/mary/develop/HIBF-hashing/test/data/bin1.fa
+/home/mary/develop/HIBF-hashing/test/data/bin2.fa
+/home/mary/develop/HIBF-hashing/test/data/bin3.fa
+/home/mary/develop/HIBF-hashing/test/data/bin4.fa
