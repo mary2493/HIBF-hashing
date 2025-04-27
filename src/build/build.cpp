@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2006-2025 Knut Reinert & Freie Universität Berlin
+// SPDX-FileCopyrightText: 2016-2025 Knut Reinert & MPI für molekulare Genetik
+// SPDX-License-Identifier: CC0-1.0
+
 #include "build/build.hpp"
 
 #include <algorithm> // for std::all_of
@@ -12,21 +16,62 @@
 #include <seqan3/io/sequence_file/all.hpp>
 #include <seqan3/search/views/minimiser_hash.hpp>
 
+#include "contrib/syncmer.hpp"
 #include "dna4_traits.hpp"
 #include "index_data.hpp"
 #include <cereal/archives/binary.hpp>
 #include <hibf/config.hpp>
 #include <hibf/hierarchical_interleaved_bloom_filter.hpp>
 
-void build(configuration const & config)
+template <hash_type hash>
+std::function<void(size_t, seqan::hibf::insert_iterator &&)>
+get_input_fn_impl(configuration const & config, std::vector<std::string> const & user_bin_paths)
 {
     using sequence_file_t = seqan3::sequence_file_input<dna4_traits>;
 
-    std::ifstream file_list(config.file_list_path);
-    std::string current_line;
+    auto view = [&]()
+    {
+        if constexpr (hash == hash_type::minimiser)
+        {
+            return seqan3::views::minimiser_hash(seqan3::ungapped{config.kmer_size},
+                                                 seqan3::window_size{config.window_size});
+        }
+        else
+        {
+            static_assert(hash == hash_type::syncmer);
+            return seqan3::views::syncmer({.kmer_size = config.kmer_size, .smer_size = config.s, .offset = config.t});
+        }
+    }();
 
+    return [&, view](size_t const user_bin_id, seqan::hibf::insert_iterator it)
+    {
+        sequence_file_t fin{user_bin_paths[user_bin_id]};
+        for (auto & record : fin)
+        {
+            std::ranges::copy(record.sequence() | view, it);
+        }
+    };
+}
+
+std::function<void(size_t, seqan::hibf::insert_iterator &&)>
+get_input_fn(configuration const & config, std::vector<std::string> const & user_bin_paths)
+{
+    switch (config.hash)
+    {
+    case hash_type::minimiser:
+        return get_input_fn_impl<hash_type::minimiser>(config, user_bin_paths);
+    case hash_type::syncmer:
+        return get_input_fn_impl<hash_type::syncmer>(config, user_bin_paths);
+    default:
+        throw std::runtime_error{"Invalid hash type."};
+    }
+}
+
+std::vector<std::string> parse_user_bins(std::filesystem::path const & file)
+{
     std::vector<std::string> user_bin_paths;
-
+    std::ifstream file_list{file};
+    std::string current_line;
     sharg::input_file_validator fasta_validator{{"fasta", "fa", "fna"}};
 
     //Each FASTA file is opened, and the k-mers are extracted from it.
@@ -54,30 +99,16 @@ void build(configuration const & config)
     if (user_bin_paths.empty())
         throw std::runtime_error{"No valid files found in the file list."};
 
-    uint8_t current_hash = 0u;
-    if (config.hash == hash_type::kmer)
-        current_hash = config.kmer_size;
-    else if (config.hash == hash_type::minimiser)
-        current_hash = config.window_size;
-    else
-        throw std::runtime_error{"Syncmer support is not yet implemented. Please use kmer or minimiser."};
+    return user_bin_paths;
+}
 
-    auto minimiser_view =
-        seqan3::views::minimiser_hash(seqan3::ungapped{config.kmer_size}, seqan3::window_size{current_hash});
-    auto get_user_bin_data = [&](size_t const user_bin_id, seqan::hibf::insert_iterator it)
-    {
-        sequence_file_t fin{user_bin_paths[user_bin_id]};
-        for (auto & record : fin)
-        {
-            if (record.sequence().size() < config.kmer_size)
-                throw std::runtime_error{"Sequence in " + user_bin_paths[user_bin_id]
-                                         + " is shorter than the k-mer size."};
+void build(configuration const & config)
+{
+    std::vector<std::string> const user_bin_paths = parse_user_bins(config.file_list_path);
 
-            std::ranges::copy(record.sequence() | minimiser_view, it);
-        }
-    };
-    // construct a config
-    seqan::hibf::config hibf_config{.input_fn = get_user_bin_data,                // required
+    auto input_fn = get_input_fn(config, user_bin_paths);
+
+    seqan::hibf::config hibf_config{.input_fn = input_fn,                         // required
                                     .number_of_user_bins = user_bin_paths.size(), // required
                                     .number_of_hash_functions = 2u,
                                     .maximum_fpr = 0.05,
@@ -87,7 +118,7 @@ void build(configuration const & config)
     seqan::hibf::hierarchical_interleaved_bloom_filter hibf{hibf_config};
 
     //The indices can also be stored and loaded from disk by using cereal
-    myindex index{config.kmer_size, current_hash, std::move(hibf)};
+    myindex index{config, std::move(hibf)};
     index.store(config.index_output);
 
     std::cout << "HIBF index built and saved to " << config.index_output << "\n";

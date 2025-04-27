@@ -22,19 +22,11 @@ int main(int argc, char ** argv)
 
     try
     {
-        parser.parse(); // Trigger command line parsing.
-    }
-    catch (sharg::parser_error const & ext) // Catch user errors.
-    {
-        std::cerr << "Parsing error. " << ext.what() << '\n'; // Give error message.
-        return -1;
-    }
+        parser.parse();
 
-    // hold a reference to the sub_parser
-    sharg::parser & sub_parser = parser.get_sub_parser();
+        // hold a reference to the sub_parser
+        sharg::parser & sub_parser = parser.get_sub_parser();
 
-    try
-    {
         if (sub_parser.info.app_name == std::string_view{"HIBF-hashing-build"})
             run_build(sub_parser);
         else if (sub_parser.info.app_name == std::string_view{"HIBF-hashing-search"})
@@ -43,7 +35,7 @@ int main(int argc, char ** argv)
     catch (std::exception const & ext)
     {
         std::cerr << "[Error] " << ext.what() << '\n';
-        std::exit(-1);
+        return -1;
     }
     return 0;
 }

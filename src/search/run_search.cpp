@@ -38,15 +38,7 @@ void run_search(sharg::parser & parser)
                       .description = ".txt file to write the search results to.",
                       .validator = sharg::output_file_validator{sharg::output_file_open_options::open_or_create}});
 
-    try
-    {
-        parser.parse(); // Trigger command line parsing.
-    }
-    catch (sharg::parser_error const & ext) // Catch user errors.
-    {
-        std::cerr << "Parsing error. " << ext.what() << '\n'; // Give error message.
-        std::exit(-1);
-    }
+    parser.parse();
 
     search(config);
 }

@@ -22,8 +22,8 @@ TEST_F(cli_search_test, no_options)
 
 TEST_F(cli_search_test, missing_required_argument_index)
 {
-    app_test_result const result = execute_app("HIBF-hashing", "search", "--reads", data("reads.fasta"));
-    std::string_view const expected{"Parsing error. Option -i/--index is required but not set.\n"};
+    app_test_result const result = execute_app("HIBF-hashing", "search", "--reads", data("query.fq"));
+    std::string_view const expected{"[Error] Option -i/--index is required but not set.\n"};
 
     EXPECT_FAILURE(result);
     EXPECT_EQ(result.out, "");
@@ -33,8 +33,8 @@ TEST_F(cli_search_test, missing_required_argument_index)
 TEST_F(cli_search_test, missing_required_argument_reads)
 {
     app_test_result const result =
-        execute_app("HIBF-hashing", "search", "index", data("test_index_kmer.bin"), "--output result.out");
-    std::string_view const expected{"Parsing error. Option -i/--index is required but not set.\n"};
+        execute_app("HIBF-hashing", "search", "index", data("kmer.index"), "--output result.out");
+    std::string_view const expected{"[Error] Option -i/--index is required but not set.\n"};
 
     EXPECT_FAILURE(result);
     EXPECT_EQ(result.out, "");
@@ -46,15 +46,15 @@ TEST_F(cli_search_test, with_arguments_kmer)
     app_test_result const result = execute_app("HIBF-hashing",
                                                "search",
                                                "--index",
-                                               data("test_index_kmer.bin"),
+                                               data("kmer.index"),
                                                "--reads",
-                                               data("reads.fasta"),
+                                               data("query.fq"),
                                                "--output result.out");
 
     std::string const expected{"The following hits were found:\n"
-                               "read1: [1,2]\n"
-                               "read2: []\n"
-                               "read3: [1]\n"
+                               "query1: [0]\n"
+                               "query2: [1]\n"
+                               "query3: [2]\n"
 
     };
 
@@ -68,15 +68,37 @@ TEST_F(cli_search_test, with_arguments_minimiser)
     app_test_result const result = execute_app("HIBF-hashing",
                                                "search",
                                                "--index",
-                                               data("test_index_minimiser.bin"),
+                                               data("minimiser.index"),
                                                "--reads",
-                                               data("reads.fasta"),
+                                               data("query.fq"),
                                                "--output result.out");
 
     std::string const expected{"The following hits were found:\n"
-                               "read1: [1,2]\n"
-                               "read2: []\n"
-                               "read3: [1]\n"
+                               "query1: [0]\n"
+                               "query2: [1]\n"
+                               "query3: [2]\n"
+
+    };
+
+    EXPECT_SUCCESS(result);
+    EXPECT_EQ(result.out, expected);
+    EXPECT_EQ(result.err, "");
+}
+
+TEST_F(cli_search_test, with_arguments_syncmer)
+{
+    app_test_result const result = execute_app("HIBF-hashing",
+                                               "search",
+                                               "--index",
+                                               data("syncmer.index"),
+                                               "--reads",
+                                               data("query.fq"),
+                                               "--output result.out");
+
+    std::string const expected{"The following hits were found:\n"
+                               "query1: [0]\n"
+                               "query2: [1]\n"
+                               "query3: [2]\n"
 
     };
 
@@ -87,18 +109,12 @@ TEST_F(cli_search_test, with_arguments_minimiser)
 
 TEST_F(cli_search_test, missing_path)
 {
-    app_test_result const result = execute_app("HIBF-hashing",
-                                               "search",
-                                               "--index",
-                                               data("test_index_kmer.bin"),
-                                               "--reads",
-                                               data("reads.fasta"),
-                                               "-o",
-                                               "");
+    app_test_result const result =
+        execute_app("HIBF-hashing", "search", "--index", data("kmer.index"), "--reads", data("query.fq"), "-o", "");
 
     EXPECT_FAILURE(result);
     EXPECT_EQ(result.out, "");
-    EXPECT_EQ(result.err, "Parsing error. Missing value for option -o\n");
+    EXPECT_EQ(result.err, "[Error] Missing value for option -o\n");
 }
 
 TEST_F(cli_search_test, invalid_input_path)
@@ -108,7 +124,7 @@ TEST_F(cli_search_test, invalid_input_path)
     EXPECT_FAILURE(result);
     EXPECT_EQ(result.out, "");
     EXPECT_EQ(result.err,
-              "Parsing error. Validation failed for option -i/--index: The file \"does/not/exist\" does not exist!\n");
+              "[Error] Validation failed for option -i/--index: The file \"does/not/exist\" does not exist!\n");
 }
 
 TEST_F(cli_search_test, invalid_output_path)
@@ -116,13 +132,12 @@ TEST_F(cli_search_test, invalid_output_path)
     app_test_result const result = execute_app("HIBF-hashing",
                                                "search",
                                                "--index",
-                                               data("test_index_kmer.bin"),
+                                               data("kmer.index"),
                                                "--reads",
-                                               data("reads.fasta"),
+                                               data("query.fq"),
                                                "--output does/not/exist");
 
     EXPECT_FAILURE(result);
     EXPECT_EQ(result.out, "");
-    EXPECT_EQ(result.err,
-              "Parsing error. Validation failed for option -o/--output: Cannot write \"does/not/exist\"!\n");
+    EXPECT_EQ(result.err, "[Error] Validation failed for option -o/--output: Cannot write \"does/not/exist\"!\n");
 }

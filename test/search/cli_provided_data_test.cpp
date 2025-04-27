@@ -10,11 +10,11 @@ struct search_test : public app_test, public testing::WithParamInterface<std::tu
     static std::filesystem::path get_index(std::string_view const hash_type)
     {
         if (hash_type == "kmer")
-            return data("20_20.index");
+            return data("kmer.index");
         else if (hash_type == "minimiser")
-            return data("20_24.index");
+            return data("minimiser.index");
         else
-            throw std::runtime_error{"Unknown hash type"};
+            return data("syncmer.index");
     }
 
     static std::string_view get_expected_hits(std::string_view const hash_type, uint16_t const errors)
@@ -38,8 +38,9 @@ TEST_F(search_test, check_index)
         std::string_view const window_size = (hash_type == "kmer") ? "20" : "24";
         app_test_result const result = execute_app("HIBF-hashing",
                                                    "build",
+                                                   "minimiser",
                                                    "--input",
-                                                   data("provided_files.txt"),
+                                                   data("list.txt"),
                                                    "--output",
                                                    hash_type,
                                                    "--kmer 20",
@@ -47,9 +48,29 @@ TEST_F(search_test, check_index)
                                                    window_size);
         EXPECT_SUCCESS(result);
         EXPECT_EQ(result.err, "");
+        ASSERT_TRUE(std::filesystem::exists(hash_type));
 
-        EXPECT_TRUE(string_from_file(hash_type) == string_from_file(get_index(hash_type))) << "Index files differ";
+        EXPECT_TRUE(string_from_file(hash_type) == string_from_file(get_index(hash_type)))
+            << "Index files differ " << hash_type;
     }
+}
+
+TEST_F(search_test, check_index_syncmer)
+{
+    app_test_result const result = execute_app("HIBF-hashing",
+                                               "build",
+                                               "syncmer",
+                                               "--input",
+                                               data("list.txt"),
+                                               "--output syncmer",
+                                               "--kmer 15",
+                                               "--syncmer_s 11",
+                                               "--syncmer_t 2");
+    EXPECT_SUCCESS(result);
+    EXPECT_EQ(result.err, "");
+    ASSERT_TRUE(std::filesystem::exists("syncmer"));
+
+    EXPECT_TRUE(string_from_file("syncmer") == string_from_file(get_index("syncmer"))) << "Index files differ";
 }
 
 TEST_P(search_test, run)

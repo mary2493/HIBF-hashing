@@ -6,9 +6,9 @@
 
 #include <filesystem>
 
-enum class hash_type
+enum class hash_type : uint8_t
 {
-    kmer,
+    invalid,
     minimiser,
     syncmer
 };
@@ -22,7 +22,8 @@ struct configuration
     std::filesystem::path search_output{"output.txt"};
     std::filesystem::path index_file{};
     uint8_t error{0u};
-    hash_type hash{hash_type::kmer};
+    hash_type hash{hash_type::invalid};
     uint8_t window_size{20u};
-    uint8_t s{10u};
+    uint8_t s{11u};
+    uint8_t t{2u};
 };
